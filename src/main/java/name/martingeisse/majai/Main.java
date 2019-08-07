@@ -1,11 +1,8 @@
 package name.martingeisse.majai;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.tree.ClassNode;
-
-import java.io.FileInputStream;
-import java.util.Arrays;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -13,14 +10,17 @@ import java.util.Arrays;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
-		ClassNode classNode = new ClassNode(Opcodes.ASM6);
-		try (FileInputStream fileInputStream = new FileInputStream("out/production/classes/name/martingeisse/majai/Test.class")) {
-			new ClassReader(fileInputStream).accept(classNode, ClassReader.SKIP_DEBUG);
+//		try (FileOutputStream fileOutputStream = new FileOutputStream("all.S")) {
+//			try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8)) {
+//				Compiler compiler = new Compiler(new ClassFileLoader(), "name/martingeisse/majai/payload/Test", outputStreamWriter);
+//				compiler.compile();
+//			}
+//		}
+
+		try (OutputStreamWriter outputStreamWriter = new OutputStreamWriter(System.out, StandardCharsets.UTF_8)) {
+			new Compiler(new ClassFileLoader(), "name/martingeisse/majai/payload/Test", outputStreamWriter).compile();
 		}
-		Compiler compiler = new Compiler(Arrays.asList(classNode));
-		byte[] program = compiler.compile();
-		VirtualMachine virtualMachine = new VirtualMachine(program);
-		virtualMachine.run();
+
 	}
 
 }

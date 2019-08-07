@@ -10,6 +10,31 @@ tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
+sourceSets {
+	main {
+		java {
+			srcDir 'src/main/java'
+			srcDir 'src/main/generated'
+		}
+		resources {
+			srcDir 'src/main/java'
+			srcDir 'src/main/generated'
+			srcDir 'src/main/resources'
+		}
+	}
+	test {
+		java {
+			srcDir 'src/test/java'
+			srcDir 'src/test/generated'
+		}
+		resources {
+			srcDir 'src/test/java'
+			srcDir 'src/test/generated'
+			srcDir 'src/test/resources'
+		}
+	}
+}
+
 repositories {
 	mavenCentral()
 }
