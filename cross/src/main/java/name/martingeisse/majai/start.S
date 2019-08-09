@@ -23,8 +23,14 @@ start:
     lui sp, 0x00001
 
     // main program
-    call main
+    li a0, 7
+    call name_martingeisse_majai_payload_Test_test_I_I
+    sw a0, -8(x0)
 
+    // quit simulator
+    sw x0, -4(x0)
+
+    // hang in case this is real hardware
 hang:
     j hang
 
