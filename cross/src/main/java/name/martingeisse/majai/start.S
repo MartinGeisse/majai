@@ -23,12 +23,13 @@ start:
     lui sp, 0x00001
 
     // main program
-    li a0, 7
-    call name_martingeisse_majai_payload_Test_foo_I_I
-    sw a0, -8(x0)
+    // li a0, 7
+    // call name_martingeisse_majai_payload_Test_foo_I_I
+    // sw a0, -8(x0)
+    call name_martingeisse_majai_payload_Test_main__V
 
     // quit simulator
-    sw x0, -4(x0)
+    // sw x0, -4(x0)
 
     // hang in case this is real hardware
 hang:
@@ -38,4 +39,14 @@ hang:
 interruptEntry:
     j interruptEntry
 
+// --------------------------------------------------------------------------------------------------------------------
+// native methods
+// --------------------------------------------------------------------------------------------------------------------
+
+name_martingeisse_majai_payload_Test_storeWord_II_V:
+    sw a1, 0(a0)
+    ret
+
+// --------------------------------------------------------------------------------------------------------------------
+// generated code
 // --------------------------------------------------------------------------------------------------------------------

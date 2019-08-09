@@ -113,6 +113,7 @@ class CodeTranslator {
 				} else {
 					throw new NotYetImplementedException("ldc with anything other than Integer not supported yet; found: " + ldc.cst.getClass());
 				}
+				break;
 			}
 
 			case Opcodes.ILOAD:

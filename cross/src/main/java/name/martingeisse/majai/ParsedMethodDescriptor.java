@@ -62,7 +62,11 @@ public final class ParsedMethodDescriptor {
     }
 
     public int getReturnWords() {
-        return getWords(returnType);
+        if (returnType.equals("V")) {
+            return 0;
+        } else {
+            return getWords(returnType);
+        }
     }
 
     private static int getWords(String fieldDescriptor) {
