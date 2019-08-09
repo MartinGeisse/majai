@@ -7,8 +7,8 @@ public class Test {
 
 	static native void print(String s);
 
-	public static void main() {
-		print("Hello world");
+	public static int test(int x) {
+		return x + x + 1;
 	}
 
 }
