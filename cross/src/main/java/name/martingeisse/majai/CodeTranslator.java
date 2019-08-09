@@ -151,122 +151,322 @@ class CodeTranslator {
 				case Opcodes.SASTORE:
 					throw new NotYetImplementedException();
 
-				/*
+				case Opcodes.POP:
+					out.println("	add sp, sp, 4");
+					break;
 
-  int POP = 87; // -
-  int POP2 = 88; // -
-  int DUP = 89; // -
-  int DUP_X1 = 90; // -
-  int DUP_X2 = 91; // -
-  int DUP2 = 92; // -
-  int DUP2_X1 = 93; // -
-  int DUP2_X2 = 94; // -
-  int SWAP = 95; // -
-  int IADD = 96; // -
-  int LADD = 97; // -
-  int FADD = 98; // -
-  int DADD = 99; // -
-  int ISUB = 100; // -
-  int LSUB = 101; // -
-  int FSUB = 102; // -
-  int DSUB = 103; // -
-  int IMUL = 104; // -
-  int LMUL = 105; // -
-  int FMUL = 106; // -
-  int DMUL = 107; // -
-  int IDIV = 108; // -
-  int LDIV = 109; // -
-  int FDIV = 110; // -
-  int DDIV = 111; // -
-  int IREM = 112; // -
-  int LREM = 113; // -
-  int FREM = 114; // -
-  int DREM = 115; // -
-  int INEG = 116; // -
-  int LNEG = 117; // -
-  int FNEG = 118; // -
-  int DNEG = 119; // -
-  int ISHL = 120; // -
-  int LSHL = 121; // -
-  int ISHR = 122; // -
-  int LSHR = 123; // -
-  int IUSHR = 124; // -
-  int LUSHR = 125; // -
-  int IAND = 126; // -
-  int LAND = 127; // -
-  int IOR = 128; // -
-  int LOR = 129; // -
-  int IXOR = 130; // -
-  int LXOR = 131; // -
-  int IINC = 132; // visitIincInsn
-  int I2L = 133; // visitInsn
-  int I2F = 134; // -
-  int I2D = 135; // -
-  int L2I = 136; // -
-  int L2F = 137; // -
-  int L2D = 138; // -
-  int F2I = 139; // -
-  int F2L = 140; // -
-  int F2D = 141; // -
-  int D2I = 142; // -
-  int D2L = 143; // -
-  int D2F = 144; // -
-  int I2B = 145; // -
-  int I2C = 146; // -
-  int I2S = 147; // -
-  int LCMP = 148; // -
-  int FCMPL = 149; // -
-  int FCMPG = 150; // -
-  int DCMPL = 151; // -
-  int DCMPG = 152; // -
-  int IFEQ = 153; // visitJumpInsn
-  int IFNE = 154; // -
-  int IFLT = 155; // -
-  int IFGE = 156; // -
-  int IFGT = 157; // -
-  int IFLE = 158; // -
-  int IF_ICMPEQ = 159; // -
-  int IF_ICMPNE = 160; // -
-  int IF_ICMPLT = 161; // -
-  int IF_ICMPGE = 162; // -
-  int IF_ICMPGT = 163; // -
-  int IF_ICMPLE = 164; // -
-  int IF_ACMPEQ = 165; // -
-  int IF_ACMPNE = 166; // -
-  int GOTO = 167; // -
-  int JSR = 168; // -
-  int RET = 169; // visitVarInsn
-  int TABLESWITCH = 170; // visiTableSwitchInsn
-  int LOOKUPSWITCH = 171; // visitLookupSwitch
-  int IRETURN = 172; // visitInsn
-  int LRETURN = 173; // -
-  int FRETURN = 174; // -
-  int DRETURN = 175; // -
-  int ARETURN = 176; // -
-  int RETURN = 177; // -
-  int GETSTATIC = 178; // visitFieldInsn
-  int PUTSTATIC = 179; // -
-  int GETFIELD = 180; // -
-  int PUTFIELD = 181; // -
-  int INVOKEVIRTUAL = 182; // visitMethodInsn
-  int INVOKESPECIAL = 183; // -
-  int INVOKESTATIC = 184; // -
-  int INVOKEINTERFACE = 185; // -
-  int INVOKEDYNAMIC = 186; // visitInvokeDynamicInsn
-  int NEW = 187; // visitTypeInsn
-  int NEWARRAY = 188; // visitIntInsn
-  int ANEWARRAY = 189; // visitTypeInsn
-  int ARRAYLENGTH = 190; // visitInsn
-  int ATHROW = 191; // -
-  int CHECKCAST = 192; // visitTypeInsn
-  int INSTANCEOF = 193; // -
-  int MONITORENTER = 194; // visitInsn
-  int MONITOREXIT = 195; // -
-  int MULTIANEWARRAY = 197; // visitMultiANewArrayInsn
-  int IFNULL = 198; // visitJumpInsn
-  int IFNONNULL = 199; // -
+				case Opcodes.POP2:
+					out.println("	add sp, sp, 8");
+					break;
 
-				 */
+				case Opcodes.DUP:
+					out.println("	lw t0, 0(sp)");
+					out.println("	sub sp, sp, 4");
+					out.println("	sw t0, 0(sp)");
+					break;
+
+				case Opcodes.DUP_X1:
+					out.println("	lw t0, 0(sp)");
+					out.println("	lw t1, 4(sp)");
+					out.println("	sub sp, sp, 4");
+					out.println("	sw t0, 0(sp)");
+					out.println("	sw t1, 4(sp)");
+					out.println("	sw t0, 8(sp)");
+					break;
+
+				case Opcodes.DUP_X2:
+					out.println("	lw t0, 0(sp)");
+					out.println("	lw t1, 4(sp)");
+					out.println("	lw t2, 8(sp)");
+					out.println("	sub sp, sp, 4");
+					out.println("	sw t0, 0(sp)");
+					out.println("	sw t1, 4(sp)");
+					out.println("	sw t2, 8(sp)");
+					out.println("	sw t0, 0(sp)");
+					break;
+
+				case Opcodes.DUP2_X1:
+					out.println("	lw t0, 0(sp)");
+					out.println("	lw t1, 4(sp)");
+					out.println("	lw t2, 8(sp)");
+					out.println("	sub sp, sp, 4");
+					out.println("	sw t0, 0(sp)");
+					out.println("	sw t1, 4(sp)");
+					out.println("	sw t2, 8(sp)");
+					out.println("	sw t0, 12(sp)");
+					out.println("	sw t1, 16(sp)");
+					break;
+
+				case Opcodes.DUP2_X2:
+					out.println("	lw t0, 0(sp)");
+					out.println("	lw t1, 4(sp)");
+					out.println("	lw t2, 8(sp)");
+					out.println("	lw t3, 8(sp)");
+					out.println("	sub sp, sp, 8");
+					out.println("	sw t0, 0(sp)");
+					out.println("	sw t1, 4(sp)");
+					out.println("	sw t2, 8(sp)");
+					out.println("	sw t3, 12(sp)");
+					out.println("	sw t0, 16(sp)");
+					out.println("	sw t1, 20(sp)");
+					break;
+
+				case Opcodes.SWAP:
+					out.println("	lw t0, 0(sp)");
+					out.println("	lw t1, 4(sp)");
+					out.println("	sw t1, 0(sp)");
+					out.println("	sw t0, 4(sp)");
+					break;
+
+				case Opcodes.IADD:
+					wordOp("add");
+					break;
+
+				case Opcodes.LADD:
+				case Opcodes.FADD:
+				case Opcodes.DADD:
+					throw new NotYetImplementedException();
+
+				case Opcodes.ISUB:
+					wordOp("sub");
+					break;
+
+				case Opcodes.LSUB:
+				case Opcodes.FSUB:
+				case Opcodes.DSUB:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IMUL:
+					wordOp("mul");
+					break;
+
+				case Opcodes.LMUL:
+				case Opcodes.FMUL:
+				case Opcodes.DMUL:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IDIV:
+					wordOp("div");
+					break;
+
+				case Opcodes.LDIV:
+				case Opcodes.FDIV:
+				case Opcodes.DDIV:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IREM:
+					wordOp("rem");
+					break;
+
+				case Opcodes.LREM:
+				case Opcodes.FREM:
+				case Opcodes.DREM:
+					throw new NotYetImplementedException();
+
+				case Opcodes.INEG:
+					wordOp("neg");
+					break;
+
+				case Opcodes.LNEG:
+				case Opcodes.FNEG:
+				case Opcodes.DNEG:
+					throw new NotYetImplementedException();
+
+				case Opcodes.ISHL:
+					wordOp("sll");
+					break;
+
+				case Opcodes.LSHL:
+					throw new NotYetImplementedException();
+
+				case Opcodes.ISHR:
+					wordOp("sra");
+					break;
+
+				case Opcodes.LSHR:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IUSHR:
+					wordOp("srl");
+					break;
+
+				case Opcodes.LUSHR:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IAND:
+					wordOp("and");
+					break;
+
+				case Opcodes.LAND:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IOR:
+					wordOp("or");
+					break;
+
+				case Opcodes.LOR:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IXOR:
+					wordOp("xor");
+					break;
+
+				case Opcodes.LXOR:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IINC: {
+					IincInsnNode inc = (IincInsnNode)instruction;
+					out.println("	lw t0, " + (inc.var * 4) + "(s0)");
+					out.println("	addi t0, t0, " + inc.incr);
+					out.println("	sw t0, " + (inc.var * 4) + "(s0)");
+					break;
+				}
+
+				case Opcodes.I2L:
+				case Opcodes.I2F:
+				case Opcodes.I2D:
+				case Opcodes.L2I:
+				case Opcodes.L2F:
+				case Opcodes.L2D:
+				case Opcodes.F2I:
+				case Opcodes.F2L:
+				case Opcodes.F2D:
+				case Opcodes.D2I:
+				case Opcodes.D2L:
+				case Opcodes.D2F:
+					throw new NotYetImplementedException();
+
+				case Opcodes.I2B:
+					TODO;
+					break;
+
+				case Opcodes.I2C:
+					TODO;
+					break;
+
+				case Opcodes.I2S:
+					TODO;
+					break;
+
+				case Opcodes.LCMP:
+				case Opcodes.FCMPL:
+				case Opcodes.FCMPG:
+				case Opcodes.DCMPL:
+				case Opcodes.DCMPG:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IFEQ: // visitJumpInsn
+					TODO;
+					break;
+
+				case Opcodes.IFNE:
+					TODO;
+					break;
+
+				case Opcodes.IFLT:
+					TODO;
+					break;
+
+				case Opcodes.IFGE:
+					TODO;
+					break;
+
+				case Opcodes.IFGT:
+					TODO;
+					break;
+
+				case Opcodes.IFLE:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPEQ:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPNE:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPLT:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPGE:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPGT:
+					TODO;
+					break;
+
+				case Opcodes.IF_ICMPLE:
+					TODO;
+					break;
+
+				case Opcodes.IF_ACMPEQ:
+					TODO;
+					break;
+
+				case Opcodes.IF_ACMPNE:
+					TODO;
+					break;
+
+				case Opcodes.GOTO:
+					TODO;
+					break;
+
+				case Opcodes.JSR:
+				case Opcodes.RET:
+				case Opcodes.TABLESWITCH:
+				case Opcodes.LOOKUPSWITCH:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IRETURN:
+				case Opcodes.FRETURN:
+				case Opcodes.ARETURN:
+					TODO;
+					break;
+
+				case Opcodes.LRETURN:
+				case Opcodes.DRETURN:
+					TODO;
+					break;
+
+				case Opcodes.RETURN:
+					TODO;
+					break;
+
+				case Opcodes.GETSTATIC:
+				case Opcodes.PUTSTATIC:
+				case Opcodes.GETFIELD:
+				case Opcodes.PUTFIELD:
+				case Opcodes.INVOKEVIRTUAL:
+				case Opcodes.INVOKESPECIAL:
+				case Opcodes.INVOKESTATIC:
+				case Opcodes.INVOKEINTERFACE:
+				case Opcodes.INVOKEDYNAMIC:
+				case Opcodes.NEW:
+				case Opcodes.NEWARRAY:
+				case Opcodes.ANEWARRAY:
+				case Opcodes.ARRAYLENGTH:
+				case Opcodes.ATHROW:
+				case Opcodes.CHECKCAST:
+				case Opcodes.INSTANCEOF:
+				case Opcodes.MONITORENTER:
+				case Opcodes.MONITOREXIT:
+				case Opcodes.MULTIANEWARRAY:
+					throw new NotYetImplementedException();
+
+				case Opcodes.IFNULL:
+					TODO;
+					break;
+
+				case Opcodes.IFNONNULL:
+					TODO;
+					break;
+
+				default:
+					throw new RuntimeException("unknown opcode: " + opcode);
 
 			}
 
@@ -275,8 +475,8 @@ class CodeTranslator {
 	}
 
 	private void pushInt(int value) {
-		out.println("	li s1, " + value);
-		push("s1");
+		out.println("	li t0, " + value);
+		push("t0");
 	}
 
 	private void pushLong(long value) {
@@ -285,13 +485,13 @@ class CodeTranslator {
 	}
 
 	private void load32(int index) {
-		out.println("	lw s1, " + (index * 4) + "(s0)");
-		push("s1");
+		out.println("	lw t0, " + (index * 4) + "(s0)");
+		push("t0");
 	}
 
 	private void store32(int index) {
-		pop("s1");
-		out.println("	sw s1, " + (index * 4) + "(s0)");
+		pop("t0");
+		out.println("	sw t0, " + (index * 4) + "(s0)");
 	}
 
 	private void load64(int index) {
@@ -312,6 +512,18 @@ class CodeTranslator {
 	private void pop(String register) {
 		out.println("	lw " + register + ", 0(sp)");
 		out.println("	add sp, sp, 4");
+	}
+
+	private void peek(String register) {
+		out.println("	lw " + register + ", 0(sp)");
+	}
+
+	private void wordOp(String instruction) {
+		out.println("	lw t0, 4(sp)");
+		out.println("	lw t1, 0(sp)");
+		out.println("	" + instruction + " t0, t0, t1");
+		out.println("	add sp, sp, 4");
+		out.println("	sw t0, 0(sp)");
 	}
 
 }
