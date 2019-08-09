@@ -5,6 +5,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -55,6 +56,8 @@ public class Compiler {
 		name = NameUtil.normalizeClassName(name);
 		ClassInfo info = classInfos.get(name);
 		if (info == null) {
+
+			// build a ClassInfo object
 			info = new ClassInfo();
 			try (InputStream inputStream = classFileLoader.open(name)) {
 				new ClassReader(inputStream).accept(info, ClassReader.SKIP_DEBUG);
@@ -62,29 +65,72 @@ public class Compiler {
 				throw new RuntimeException(e);
 			}
 			info.initializeClassInfo();
+
+			// resolve superclasses first, then build a field allocator
+			if (info.superName == null) {
+				info.fieldAllocator = new FieldAllocator();
+			} else {
+				ClassInfo superclassInfo = resolveClass(info.superName);
+				info.fieldAllocator = new FieldAllocator(superclassInfo.fieldAllocator);
+			}
+
+			// allocate fields TODO store the locations!
+			for (FieldNode field : info.fields) {
+				switch (field.desc) {
+
+					case "B":
+						info.fieldAllocator.allocateByte();
+						break;
+
+					case "S":
+					case "C":
+						info.fieldAllocator.allocateHalfword();
+						break;
+
+					case "J":
+					case "D":
+						info.fieldAllocator.allocateDoubleword();
+						break;
+
+					default:
+						info.fieldAllocator.allocateWord();
+						break;
+
+				}
+			}
+			info.fieldAllocator.seal();
+
+			// publish the ClassInfo for this class
 			classInfos.put(name, info);
+
 		}
 		return info;
 	}
 
 	private void compileClass(String name) {
-		name = NameUtil.normalizeClassName(name);
-		if (compiledClasses.add(name)) {
-			ClassInfo classInfo = resolveClass(name);
+		try {
+			name = NameUtil.normalizeClassName(name);
+			if (compiledClasses.add(name)) {
+				ClassInfo classInfo = resolveClass(name);
 
-			// compile dependencies
-			// compileClass(classInfo.superName);
+				// compile dependencies
+				if (classInfo.superName != null) {
+					compileClass(classInfo.superName);
+				}
 
-			// compile the class itself
-			out.println("//");
-			out.println("// class " + NameUtil.denormalizeClassName(name));
-			out.println("//");
-			out.println("");
-			for (MethodNode methodNode : classInfo.methods) {
-				new CodeTranslator(out, classInfo, methodNode).translate();
+				// compile the class itself
+				out.println("//");
+				out.println("// class " + NameUtil.denormalizeClassName(name));
+				out.println("//");
+				out.println("");
+				for (MethodNode methodNode : classInfo.methods) {
+					new CodeTranslator(out, classInfo, methodNode).translate();
+				}
+
+				out.println();
 			}
-
-			out.println();
+		} catch (Exception e) {
+			throw new RuntimeException("error compiling class " + name, e);
 		}
 	}
 

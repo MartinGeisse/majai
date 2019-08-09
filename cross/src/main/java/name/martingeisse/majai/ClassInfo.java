@@ -8,6 +8,8 @@ import org.objectweb.asm.tree.ClassNode;
  */
 public class ClassInfo extends ClassNode {
 
+	public FieldAllocator fieldAllocator;
+
 	public ClassInfo() {
 		super(Opcodes.ASM6);
 	}
