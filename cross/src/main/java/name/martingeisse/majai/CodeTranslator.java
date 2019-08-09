@@ -14,12 +14,14 @@ class CodeTranslator {
 	private final ClassInfo classInfo;
 	private final MethodNode methodNode;
 	private final String mangledMethodName;
+	private final String returnLabel;
 
 	CodeTranslator(PrintWriter out, ClassInfo classInfo, MethodNode methodNode) {
 		this.out = out;
 		this.classInfo = classInfo;
 		this.methodNode = methodNode;
 		this.mangledMethodName = NameUtil.mangleMethodName(classInfo, methodNode);
+		this.returnLabel = mangledMethodName + "__return";
 	}
 
 	void translate() {
@@ -41,6 +43,7 @@ class CodeTranslator {
 		out.println("	sub sp, sp, " + (methodNode.maxLocals + 2) * 4);
 		out.println("	sw ra, " + ((methodNode.maxLocals) * 4) + "(sp)");
 		out.println("	sw s0, " + ((methodNode.maxLocals + 1) * 4) + "(sp)");
+		out.println("	mv s0, sp");
 
 		// code
 		for (AbstractInsnNode instruction = methodNode.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
@@ -48,7 +51,7 @@ class CodeTranslator {
 		}
 
 		// outro
-		out.println(mangledMethodName + "__return:");
+		out.println(returnLabel + ':');
 		out.println("	lw s0, " + ((methodNode.maxLocals + 1) * 4) + "(sp)");
 		out.println("	lw ra, " + ((methodNode.maxLocals) * 4) + "(sp)");
 		out.println("	add sp, sp, " + (methodNode.maxLocals + 2) * 4);
@@ -412,7 +415,7 @@ class CodeTranslator {
 					break;
 
 				case Opcodes.GOTO:
-					TODO;
+					out.println("	j " + getTargetLabel(instruction));
 					break;
 
 				case Opcodes.JSR:
@@ -424,16 +427,19 @@ class CodeTranslator {
 				case Opcodes.IRETURN:
 				case Opcodes.FRETURN:
 				case Opcodes.ARETURN:
-					TODO;
+					pop("a0");
+					out.println("	j " + returnLabel);
 					break;
 
 				case Opcodes.LRETURN:
 				case Opcodes.DRETURN:
-					TODO;
+					pop("a0");
+					pop("a1");
+					out.println("	j " + returnLabel);
 					break;
 
 				case Opcodes.RETURN:
-					TODO;
+					out.println("	j " + returnLabel);
 					break;
 
 				case Opcodes.GETSTATIC:
@@ -524,6 +530,10 @@ class CodeTranslator {
 		out.println("	" + instruction + " t0, t0, t1");
 		out.println("	add sp, sp, 4");
 		out.println("	sw t0, 0(sp)");
+	}
+
+	private String getTargetLabel(AbstractInsnNode instruction) {
+		return mangledMethodName + '_' + ((JumpInsnNode)instruction).label.getLabel().getOffset();
 	}
 
 }
