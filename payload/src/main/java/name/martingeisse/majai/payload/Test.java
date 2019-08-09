@@ -11,4 +11,7 @@ public class Test {
 		return x + x + 1;
 	}
 
+	public static int foo(int x) {
+		return test(test(x));
+	}
 }

@@ -56,13 +56,21 @@ public final class ParsedMethodDescriptor {
     public int getParameterWords() {
         int words = 0;
         for (String parameterDescriptor : parameterTypes) {
-            if (parameterDescriptor.equals("J") || parameterDescriptor.equals("D")) {
-                words += 2;
-            } else {
-                words++;
-            }
+            words += getWords(parameterDescriptor);
         }
         return words;
+    }
+
+    public int getReturnWords() {
+        return getWords(returnType);
+    }
+
+    private static int getWords(String fieldDescriptor) {
+        if (fieldDescriptor.equals("J") || fieldDescriptor.equals("D")) {
+            return 2;
+        } else {
+            return 1;
+        }
     }
 
 }

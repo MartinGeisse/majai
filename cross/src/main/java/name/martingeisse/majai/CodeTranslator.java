@@ -457,7 +457,27 @@ class CodeTranslator {
 			case Opcodes.PUTFIELD:
 			case Opcodes.INVOKEVIRTUAL:
 			case Opcodes.INVOKESPECIAL:
-			case Opcodes.INVOKESTATIC:
+				throw new NotYetImplementedException();
+
+			case Opcodes.INVOKESTATIC: {
+				MethodInsnNode call = (MethodInsnNode)instruction;
+				ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
+				for (int i = 0; i < parsedMethodDescriptor.getParameterWords(); i++) {
+					out.println("	lw a" + i + ", " + (4 * (parsedMethodDescriptor.getParameterWords() - 1 - i)) + "(sp)");
+				}
+				out.println("	addi sp, sp, " + (4 * parsedMethodDescriptor.getParameterWords()));
+				out.println("	call " + NameUtil.mangleMethodName(call));
+				if (parsedMethodDescriptor.getReturnWords() == 1) {
+					out.println("	addi sp, sp, -4");
+					out.println("	sw a0, 0(sp)");
+				} else if (parsedMethodDescriptor.getReturnWords() == 2) {
+					out.println("	addi sp, sp, -8");
+					out.println("	sw a0, 0(sp)");
+					out.println("	sw a1, 4(sp)");
+				}
+				break;
+			}
+
 			case Opcodes.INVOKEINTERFACE:
 			case Opcodes.INVOKEDYNAMIC:
 			case Opcodes.NEW:

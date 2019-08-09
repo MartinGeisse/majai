@@ -24,7 +24,7 @@ start:
 
     // main program
     li a0, 7
-    call name_martingeisse_majai_payload_Test_test_I_I
+    call name_martingeisse_majai_payload_Test_foo_I_I
     sw a0, -8(x0)
 
     // quit simulator
