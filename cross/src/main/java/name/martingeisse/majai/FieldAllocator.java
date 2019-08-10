@@ -65,14 +65,14 @@ public final class FieldAllocator {
 
     public int allocateWord() {
         checkNotSealed();
-        int offset = wordCount;
+        int offset = wordCount * 4;
         wordCount++;
         return offset;
     }
 
     public int allocateDoubleword() {
         checkNotSealed();
-        int offset = wordCount;
+        int offset = wordCount * 4;
         wordCount += 2;
         return offset;
     }
@@ -86,6 +86,13 @@ public final class FieldAllocator {
         if (sealed) {
             throw new IllegalStateException("this allocator has been sealed");
         }
+    }
+
+    public int getWordCount() {
+        if (!sealed) {
+            throw new IllegalStateException("cannot get the word count from an unsealed field allocator");
+        }
+        return wordCount;
     }
 
 }

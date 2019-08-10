@@ -10,13 +10,15 @@ import java.io.PrintWriter;
  */
 class CodeTranslator {
 
+	private final Context context;
 	private final PrintWriter out;
 	private final ClassInfo classInfo;
 	private final MethodNode methodNode;
 	private final String mangledMethodName;
 	private final String returnLabel;
 
-	CodeTranslator(PrintWriter out, ClassInfo classInfo, MethodNode methodNode) {
+	CodeTranslator(Context context, PrintWriter out, ClassInfo classInfo, MethodNode methodNode) {
+		this.context = context;
 		this.out = out;
 		this.classInfo = classInfo;
 		this.methodNode = methodNode;
@@ -452,10 +454,81 @@ class CodeTranslator {
 				out.println("	j " + returnLabel);
 				break;
 
-			case Opcodes.GETSTATIC:
-			case Opcodes.PUTSTATIC:
-			case Opcodes.GETFIELD:
-			case Opcodes.PUTFIELD:
+			case Opcodes.GETSTATIC: {
+				FieldNode field = resolveField((FieldInsnNode)instruction);
+				int offset = ((FieldInfo)field).storageOffset;
+				int words = getFieldWords(field.desc);
+				if (words == 1) {
+					out.println("	addi sp, sp, -4");
+					out.println("	lw t0, staticFields + " + offset);
+					out.println("	sw t0, 0(sp)");
+				} else {
+					out.println("	addi sp, sp, -8");
+					out.println("	lw t0, staticFields + " + offset);
+					out.println("	sw t0, 0(sp)");
+					out.println("	lw t0, staticFields + " + (offset + 4));
+					out.println("	sw t0, 4(sp)");
+				}
+				break;
+			}
+
+			case Opcodes.PUTSTATIC: {
+				FieldNode field = resolveField((FieldInsnNode)instruction);
+				int offset = ((FieldInfo)field).storageOffset;
+				int words = getFieldWords(field.desc);
+				if (words == 1) {
+					out.println("	lw t0, 0(sp)");
+					out.println("	sw t0, staticFields + " + offset);
+					out.println("	addi sp, sp, 4");
+				} else {
+					out.println("	lw t0, 0(sp)");
+					out.println("	sw t0, staticFields + " + offset);
+					out.println("	lw t0, 4(sp)");
+					out.println("	sw t0, staticFields + " + (offset + 4));
+					out.println("	addi sp, sp, 8");
+				}
+				break;
+			}
+
+			case Opcodes.GETFIELD: {
+				FieldNode field = resolveField((FieldInsnNode)instruction);
+				int offset = ((FieldInfo)field).storageOffset;
+				int words = getFieldWords(field.desc);
+				if (words == 1) {
+					out.println("	lw t1, 0(sp)");
+					out.println("	lw t0, " + offset + "(t1)");
+					out.println("	sw t0, 0(sp)");
+				} else {
+					out.println("	lw t1, 0(sp)");
+					out.println("	addi sp, sp, -4");
+					out.println("	lw t0, " + offset + "(t1)");
+					out.println("	sw t0, 0(sp)");
+					out.println("	lw t0, " + (offset + 4) + "(t1)");
+					out.println("	sw t0, 4(sp)");
+				}
+				break;
+			}
+
+			case Opcodes.PUTFIELD: {
+				FieldNode field = resolveField((FieldInsnNode)instruction);
+				int offset = ((FieldInfo)field).storageOffset;
+				int words = getFieldWords(field.desc);
+				if (words == 1) {
+					out.println("	lw t1, 4(sp)");
+					out.println("	lw t0, 0(sp)");
+					out.println("	sw t0, " + offset + "(t1)");
+					out.println("	addi sp, sp, 8");
+				} else {
+					out.println("	lw t1, 8(sp)");
+					out.println("	lw t0, 0(sp)");
+					out.println("	sw t0, " + offset + "(t1)");
+					out.println("	lw t0, 4(sp)");
+					out.println("	sw t0, " + (offset + 4) + "(t1)");
+					out.println("	addi sp, sp, 12");
+				}
+				break;
+			}
+
 			case Opcodes.INVOKEVIRTUAL:
 			case Opcodes.INVOKESPECIAL:
 				throw new NotYetImplementedException();
@@ -569,6 +642,33 @@ class CodeTranslator {
 
 	private String getTargetLabel(AbstractInsnNode instruction) {
 		return mangledMethodName + '_' + ((JumpInsnNode)instruction).label.getLabel().getOffset();
+	}
+
+	private FieldNode resolveField(FieldInsnNode instruction) {
+		ClassNode classNode = context.resolveClass(instruction.owner);
+		return resolveField(classNode, instruction.name, true);
+	}
+
+	private FieldNode resolveField(ClassNode classNode, String name, boolean allowPrivate) {
+		for (FieldNode field : classNode.fields) {
+			if (allowPrivate || (field.access & Opcodes.ACC_PRIVATE) == 0) {
+				if (field.name.equals(name)) {
+					return field;
+				}
+			}
+		}
+		if (classNode.superName == null) {
+			throw new RuntimeException("could not resolve field " + name + " in class " + classNode.name);
+		}
+		return resolveField(context.resolveClass(classNode.superName), name, false);
+	}
+
+	private int getFieldWords(String descriptor) {
+		return (descriptor.equals("J") || descriptor.equals("D")) ? 2 : 1;
+	}
+
+	public interface Context {
+		ClassInfo resolveClass(String name);
 	}
 
 }

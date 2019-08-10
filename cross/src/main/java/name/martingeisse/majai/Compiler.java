@@ -22,13 +22,14 @@ import java.util.Set;
 /**
  *
  */
-public class Compiler {
+public class Compiler implements CodeTranslator.Context {
 
 	private final ClassFileLoader classFileLoader;
 	private final String mainClassName;
 	private final PrintWriter out;
 	private final Map<String, ClassInfo> classInfos;
 	private final Set<String> compiledClasses;
+	private final FieldAllocator staticFieldAllocator;
 
 	public Compiler(ClassFileLoader classFileLoader, String mainClassName, Writer out) {
 		this(classFileLoader, mainClassName, new PrintWriter(out));
@@ -40,6 +41,7 @@ public class Compiler {
 		this.out = out;
 		this.classInfos = new HashMap<>();
 		this.compiledClasses = new HashSet<>();
+		this.staticFieldAllocator = new FieldAllocator();
 	}
 
 	public void compile() {
@@ -48,11 +50,12 @@ public class Compiler {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		compileClass(mainClassName);
+		compileClass(mainClassName); // TODO compile all resolved classes? e.g. static initializers
+		emitStaticFields();
 		out.flush();
 	}
 
-	private ClassInfo resolveClass(String name) {
+	public ClassInfo resolveClass(String name) {
 		name = NameUtil.normalizeClassName(name);
 		ClassInfo info = classInfos.get(name);
 		if (info == null) {
@@ -76,24 +79,26 @@ public class Compiler {
 
 			// allocate fields TODO store the locations!
 			for (FieldNode field : info.fields) {
+				FieldInfo fieldInfo = (FieldInfo)field;
+				FieldAllocator thisFieldAllocator = (field.access & Opcodes.ACC_STATIC) == 0 ? info.fieldAllocator : staticFieldAllocator;
 				switch (field.desc) {
 
 					case "B":
-						info.fieldAllocator.allocateByte();
+						fieldInfo.storageOffset = thisFieldAllocator.allocateByte();
 						break;
 
 					case "S":
 					case "C":
-						info.fieldAllocator.allocateHalfword();
+						fieldInfo.storageOffset = thisFieldAllocator.allocateHalfword();
 						break;
 
 					case "J":
 					case "D":
-						info.fieldAllocator.allocateDoubleword();
+						fieldInfo.storageOffset = thisFieldAllocator.allocateDoubleword();
 						break;
 
 					default:
-						info.fieldAllocator.allocateWord();
+						fieldInfo.storageOffset = thisFieldAllocator.allocateWord();
 						break;
 
 				}
@@ -124,7 +129,7 @@ public class Compiler {
 				out.println("//");
 				out.println("");
 				for (MethodNode methodNode : classInfo.methods) {
-					new CodeTranslator(out, classInfo, methodNode).translate();
+					new CodeTranslator(this, out, classInfo, methodNode).translate();
 				}
 
 				out.println();
@@ -132,6 +137,18 @@ public class Compiler {
 		} catch (Exception e) {
 			throw new RuntimeException("error compiling class " + name, e);
 		}
+	}
+
+	private void emitStaticFields() {
+		staticFieldAllocator.seal();
+		out.println("//");
+		out.println("// static fields");
+		out.println("//");
+		out.println("");
+		out.println(".data");
+		out.println("staticFields:");
+		out.println("	.fill " + staticFieldAllocator.getWordCount() + ", 4, 0");
+		out.println();
 	}
 
 }

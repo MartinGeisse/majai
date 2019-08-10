@@ -1,5 +1,6 @@
 package name.martingeisse.majai;
 
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -34,6 +35,10 @@ public final class NameUtil {
 
 	public static String mangleMethodName(MethodInsnNode call) {
 		return mangleClassName(call.owner) + '_' + call.name + '_' + call.desc.replace("(", "").replace(')', '_').replace(';', '_').replace('/', '_');
+	}
+
+	public static String mangleFieldName(ClassInfo classInfo, FieldNode fieldNode) {
+		return mangleClassName(classInfo) + '_' + fieldNode.name;
 	}
 
 }
