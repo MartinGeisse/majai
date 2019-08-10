@@ -526,7 +526,12 @@ class CodeTranslator {
 			case Opcodes.NEW:
 			case Opcodes.NEWARRAY:
 			case Opcodes.ANEWARRAY:
+				throw new NotYetImplementedException();
+
 			case Opcodes.ARRAYLENGTH:
+				writeGetfield(resolveField(context.resolveClass("java.lang.Array"), "length", true));
+				break;
+
 			case Opcodes.ATHROW:
 			case Opcodes.CHECKCAST:
 			case Opcodes.INSTANCEOF:
@@ -746,6 +751,7 @@ class CodeTranslator {
 	public interface Context {
 		ClassInfo resolveClass(String name);
 		int getArrayHeaderSize();
+		String getRuntimeObjectLabel(Object o);
 	}
 
 }

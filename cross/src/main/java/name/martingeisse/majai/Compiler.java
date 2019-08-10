@@ -30,6 +30,7 @@ public class Compiler implements CodeTranslator.Context {
 	private final Map<String, ClassInfo> classInfos;
 	private final Set<String> compiledClasses;
 	private final FieldAllocator staticFieldAllocator;
+	private final Map<Object, String> runtimeObjectLabels = new HashMap<>();
 
 	private ClassInfo javaLangObject;
 	private ClassInfo javaLangArray;
@@ -57,6 +58,7 @@ public class Compiler implements CodeTranslator.Context {
 		javaLangArray = resolveClass("java.lang.Array");
 		compileClass(mainClassName); // TODO compile all resolved classes? e.g. static initializers
 		emitStaticFields();
+		emitRuntimeObjects();
 		out.flush();
 	}
 
@@ -158,6 +160,38 @@ public class Compiler implements CodeTranslator.Context {
 		out.println(".data");
 		out.println("staticFields:");
 		out.println("	.fill " + staticFieldAllocator.getWordCount() + ", 4, 0");
+		out.println();
+	}
+
+	public String getRuntimeObjectLabel(Object o) {
+		return runtimeObjectLabels.computeIfAbsent(o, o2 -> "object" + runtimeObjectLabels.size());
+	}
+
+	private void emitRuntimeObjects() {
+		out.println("//");
+		out.println("// runtime objects");
+		out.println("//");
+		out.println("");
+		out.println(".data");
+
+		RuntimeObjectSerializer serializer = new RuntimeObjectSerializer(out) {
+			@Override
+			protected String getLabel(Object o) {
+				return getRuntimeObjectLabel(o);
+			}
+		};
+		Set<Object> emittedObjects = new HashSet<>();
+		while (emittedObjects.size() < runtimeObjectLabels.size()) {
+			Map<Object, String> batch = new HashMap<>(runtimeObjectLabels);
+			for (Map.Entry<Object, String> entry : batch.entrySet()) {
+				if (!emittedObjects.add(entry.getKey())) {
+					continue;
+				}
+				out.println(entry.getValue() + ":");
+				serializer.serialize(entry.getKey());
+			}
+		}
+
 		out.println();
 	}
 
