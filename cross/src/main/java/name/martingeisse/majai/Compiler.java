@@ -31,6 +31,9 @@ public class Compiler implements CodeTranslator.Context {
 	private final Set<String> compiledClasses;
 	private final FieldAllocator staticFieldAllocator;
 
+	private ClassInfo javaLangObject;
+	private ClassInfo javaLangArray;
+
 	public Compiler(ClassFileLoader classFileLoader, String mainClassName, Writer out) {
 		this(classFileLoader, mainClassName, new PrintWriter(out));
 	}
@@ -50,6 +53,8 @@ public class Compiler implements CodeTranslator.Context {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		javaLangObject = resolveClass("java.lang.Object");
+		javaLangArray = resolveClass("java.lang.Array");
 		compileClass(mainClassName); // TODO compile all resolved classes? e.g. static initializers
 		emitStaticFields();
 		out.flush();
@@ -137,6 +142,11 @@ public class Compiler implements CodeTranslator.Context {
 		} catch (Exception e) {
 			throw new RuntimeException("error compiling class " + name, e);
 		}
+	}
+
+	@Override
+	public int getArrayHeaderSize() {
+		return javaLangArray.fieldAllocator.getWordCount() * 4;
 	}
 
 	private void emitStaticFields() {

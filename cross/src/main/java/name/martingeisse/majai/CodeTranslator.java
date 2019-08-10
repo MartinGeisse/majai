@@ -129,16 +129,30 @@ class CodeTranslator {
 			case Opcodes.DLOAD:
 				//noinspection ConstantConditions
 				load64(((VarInsnNode)instruction).var);
+				break;
 
 			case Opcodes.IALOAD:
-			case Opcodes.LALOAD:
 			case Opcodes.FALOAD:
-			case Opcodes.DALOAD:
 			case Opcodes.AALOAD:
+				writeArrayLoad(2, false, "lw");
+				break;
+
 			case Opcodes.BALOAD:
+				writeArrayLoad(0, false, "lb");
+				break;
+
 			case Opcodes.CALOAD:
+				writeArrayLoad(1, false, "lhu");
+				break;
+
 			case Opcodes.SALOAD:
-				throw new NotYetImplementedException();
+				writeArrayLoad(1, false, "lh");
+				break;
+
+			case Opcodes.LALOAD:
+			case Opcodes.DALOAD:
+				writeArrayLoad(3, true, null);
+				break;
 
 			case Opcodes.ISTORE:
 			case Opcodes.FSTORE:
@@ -154,14 +168,24 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.IASTORE:
-			case Opcodes.LASTORE:
 			case Opcodes.FASTORE:
-			case Opcodes.DASTORE:
 			case Opcodes.AASTORE:
+				writeArrayStore(2, false, "sw");
+				break;
+
+			case Opcodes.LASTORE:
+			case Opcodes.DASTORE:
+				writeArrayStore(3, true, null);
+				break;
+
 			case Opcodes.BASTORE:
+				writeArrayStore(0, false, "sb");
+				break;
+
 			case Opcodes.CASTORE:
 			case Opcodes.SASTORE:
-				throw new NotYetImplementedException();
+				writeArrayStore(1, false, "sh");
+				break;
 
 			case Opcodes.POP:
 				out.println("	add sp, sp, 4");
@@ -455,77 +479,22 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.GETSTATIC: {
-				FieldNode field = resolveField((FieldInsnNode)instruction);
-				int offset = ((FieldInfo)field).storageOffset;
-				int words = getFieldWords(field.desc);
-				if (words == 1) {
-					out.println("	addi sp, sp, -4");
-					out.println("	lw t0, staticFields + " + offset);
-					out.println("	sw t0, 0(sp)");
-				} else {
-					out.println("	addi sp, sp, -8");
-					out.println("	lw t0, staticFields + " + offset);
-					out.println("	sw t0, 0(sp)");
-					out.println("	lw t0, staticFields + " + (offset + 4));
-					out.println("	sw t0, 4(sp)");
-				}
+				writeGetstatic(resolveField((FieldInsnNode)instruction));
 				break;
 			}
 
 			case Opcodes.PUTSTATIC: {
-				FieldNode field = resolveField((FieldInsnNode)instruction);
-				int offset = ((FieldInfo)field).storageOffset;
-				int words = getFieldWords(field.desc);
-				if (words == 1) {
-					out.println("	lw t0, 0(sp)");
-					out.println("	sw t0, staticFields + " + offset);
-					out.println("	addi sp, sp, 4");
-				} else {
-					out.println("	lw t0, 0(sp)");
-					out.println("	sw t0, staticFields + " + offset);
-					out.println("	lw t0, 4(sp)");
-					out.println("	sw t0, staticFields + " + (offset + 4));
-					out.println("	addi sp, sp, 8");
-				}
+				writePutstatic(resolveField((FieldInsnNode)instruction));
 				break;
 			}
 
 			case Opcodes.GETFIELD: {
-				FieldNode field = resolveField((FieldInsnNode)instruction);
-				int offset = ((FieldInfo)field).storageOffset;
-				int words = getFieldWords(field.desc);
-				if (words == 1) {
-					out.println("	lw t1, 0(sp)");
-					out.println("	lw t0, " + offset + "(t1)");
-					out.println("	sw t0, 0(sp)");
-				} else {
-					out.println("	lw t1, 0(sp)");
-					out.println("	addi sp, sp, -4");
-					out.println("	lw t0, " + offset + "(t1)");
-					out.println("	sw t0, 0(sp)");
-					out.println("	lw t0, " + (offset + 4) + "(t1)");
-					out.println("	sw t0, 4(sp)");
-				}
+				writeGetfield(resolveField((FieldInsnNode)instruction));
 				break;
 			}
 
 			case Opcodes.PUTFIELD: {
-				FieldNode field = resolveField((FieldInsnNode)instruction);
-				int offset = ((FieldInfo)field).storageOffset;
-				int words = getFieldWords(field.desc);
-				if (words == 1) {
-					out.println("	lw t1, 4(sp)");
-					out.println("	lw t0, 0(sp)");
-					out.println("	sw t0, " + offset + "(t1)");
-					out.println("	addi sp, sp, 8");
-				} else {
-					out.println("	lw t1, 8(sp)");
-					out.println("	lw t0, 0(sp)");
-					out.println("	sw t0, " + offset + "(t1)");
-					out.println("	lw t0, 4(sp)");
-					out.println("	sw t0, " + (offset + 4) + "(t1)");
-					out.println("	addi sp, sp, 12");
-				}
+				writePutfield(resolveField((FieldInsnNode)instruction));
 				break;
 			}
 
@@ -667,8 +636,116 @@ class CodeTranslator {
 		return (descriptor.equals("J") || descriptor.equals("D")) ? 2 : 1;
 	}
 
+	private void writeGetstatic(FieldNode field) {
+		int offset = ((FieldInfo)field).storageOffset;
+		int words = getFieldWords(field.desc);
+		if (words == 1) {
+			out.println("	addi sp, sp, -4");
+			out.println("	lw t0, staticFields + " + offset);
+			out.println("	sw t0, 0(sp)");
+		} else {
+			out.println("	addi sp, sp, -8");
+			out.println("	lw t0, staticFields + " + offset);
+			out.println("	sw t0, 0(sp)");
+			out.println("	lw t0, staticFields + " + (offset + 4));
+			out.println("	sw t0, 4(sp)");
+		}
+	}
+
+	private void writePutstatic(FieldNode field) {
+		int offset = ((FieldInfo)field).storageOffset;
+		int words = getFieldWords(field.desc);
+		if (words == 1) {
+			out.println("	lw t0, 0(sp)");
+			out.println("	sw t0, staticFields + " + offset);
+			out.println("	addi sp, sp, 4");
+		} else {
+			out.println("	lw t0, 0(sp)");
+			out.println("	sw t0, staticFields + " + offset);
+			out.println("	lw t0, 4(sp)");
+			out.println("	sw t0, staticFields + " + (offset + 4));
+			out.println("	addi sp, sp, 8");
+		}
+	}
+
+	private void writeGetfield(FieldNode field) {
+		int offset = ((FieldInfo)field).storageOffset;
+		int words = getFieldWords(field.desc);
+		if (words == 1) {
+			out.println("	lw t1, 0(sp)");
+			out.println("	lw t0, " + offset + "(t1)");
+			out.println("	sw t0, 0(sp)");
+		} else {
+			out.println("	lw t1, 0(sp)");
+			out.println("	addi sp, sp, -4");
+			out.println("	lw t0, " + offset + "(t1)");
+			out.println("	sw t0, 0(sp)");
+			out.println("	lw t0, " + (offset + 4) + "(t1)");
+			out.println("	sw t0, 4(sp)");
+		}
+	}
+
+	private void writePutfield(FieldNode field) {
+		int offset = ((FieldInfo)field).storageOffset;
+		int words = getFieldWords(field.desc);
+		if (words == 1) {
+			out.println("	lw t1, 4(sp)");
+			out.println("	lw t0, 0(sp)");
+			out.println("	sw t0, " + offset + "(t1)");
+			out.println("	addi sp, sp, 8");
+		} else {
+			out.println("	lw t1, 8(sp)");
+			out.println("	lw t0, 0(sp)");
+			out.println("	sw t0, " + offset + "(t1)");
+			out.println("	lw t0, 4(sp)");
+			out.println("	sw t0, " + (offset + 4) + "(t1)");
+			out.println("	addi sp, sp, 12");
+		}
+	}
+
+	private void writeArrayLoad(int indexShiftAmount, boolean doubleword, String loadInstruction) {
+		out.println("	lw t0, 4(sp)");
+		out.println("	lw t1, 0(sp)");
+		out.println("	sll t1, t1, " + indexShiftAmount);
+		out.println("	add t0, t0, t1");
+		if (doubleword) {
+			out.println("	lw t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("	lw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
+			out.println("	sw t2, 0(sp)");
+			out.println("	sw t3, 4(sp)");
+		} else {
+			out.println("	" + loadInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("	addi sp, sp, 4");
+			out.println("	sw t2, 0(sp)");
+		}
+	}
+
+	private void writeArrayStore(int indexShiftAmount, boolean doubleword, String storeInstruction) {
+		if (doubleword) {
+			out.println("	lw t0, 12(sp)");
+			out.println("	lw t1, 8(sp)");
+			out.println("	lw t2, 4(sp)");
+			out.println("	lw t3, 0(sp)");
+			out.println("	addi sp, sp, 16");
+		} else {
+			out.println("	lw t0, 8(sp)");
+			out.println("	lw t1, 4(sp)");
+			out.println("	lw t2, 0(sp)");
+			out.println("	addi sp, sp, 12");
+		}
+		out.println("	sll t1, t1, " + indexShiftAmount);
+		out.println("	add t0, t0, t1");
+		if (doubleword) {
+			out.println("	sw t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("	sw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
+		} else {
+			out.println("	" + storeInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
+		}
+	}
+
 	public interface Context {
 		ClassInfo resolveClass(String name);
+		int getArrayHeaderSize();
 	}
 
 }
