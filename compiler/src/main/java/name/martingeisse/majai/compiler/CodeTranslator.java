@@ -523,7 +523,13 @@ class CodeTranslator {
 
 			case Opcodes.INVOKEINTERFACE:
 			case Opcodes.INVOKEDYNAMIC:
-			case Opcodes.NEW:
+				throw new NotYetImplementedException();
+
+			case Opcodes.NEW: {
+				TypeInsnNode typeInstruction = (TypeInsnNode)instruction;
+				typeInstruction.
+			}
+
 			case Opcodes.NEWARRAY:
 			case Opcodes.ANEWARRAY:
 				throw new NotYetImplementedException();
