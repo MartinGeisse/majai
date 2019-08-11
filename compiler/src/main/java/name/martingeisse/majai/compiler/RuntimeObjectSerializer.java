@@ -1,4 +1,4 @@
-package name.martingeisse.majai;
+package name.martingeisse.majai.compiler;
 
 import org.apache.commons.lang3.StringUtils;
 

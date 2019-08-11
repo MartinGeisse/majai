@@ -1,4 +1,4 @@
-package name.martingeisse.majai;
+package name.martingeisse.majai.compiler;
 
 /**
  * Allocates the position of fields in an object, either from scratch (for java.lang.Object) or based on a parent

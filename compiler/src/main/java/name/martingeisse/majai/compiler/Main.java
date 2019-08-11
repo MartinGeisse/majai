@@ -1,4 +1,4 @@
-package name.martingeisse.majai;
+package name.martingeisse.majai.compiler;
 
 import java.io.File;
 import java.io.FileOutputStream;

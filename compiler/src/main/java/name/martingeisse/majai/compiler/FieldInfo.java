@@ -1,4 +1,4 @@
-package name.martingeisse.majai;
+package name.martingeisse.majai.compiler;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldNode;

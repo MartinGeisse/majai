@@ -1,12 +1,9 @@
-package name.martingeisse.majai;
+package name.martingeisse.majai.compiler;
 
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.io.IOException;
