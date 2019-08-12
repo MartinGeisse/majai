@@ -527,7 +527,10 @@ class CodeTranslator {
 
 			case Opcodes.NEW: {
 				TypeInsnNode typeInstruction = (TypeInsnNode)instruction;
-				typeInstruction.
+				String className = typeInstruction.desc;
+				context.resolveClass(className);
+				out.println("	call allocateMemory");
+				push("a0");
 			}
 
 			case Opcodes.NEWARRAY:

@@ -22,6 +22,9 @@ start:
     // initialize the SP register
     lui sp, 0x00001
 
+    // initialize the TP register to the beginning of the dynamic heap
+    li tp, dynamicHeap
+
     // main program
     // li a0, 7
     // call name_martingeisse_majai_payload_Test_foo_I_I
@@ -40,10 +43,22 @@ interruptEntry:
     j interruptEntry
 
 // --------------------------------------------------------------------------------------------------------------------
-// native methods
+// various native methods
 // --------------------------------------------------------------------------------------------------------------------
 
 name_martingeisse_majai_payload_Test_storeWord_II_V:
+    sw a1, 0(a0)
+    ret
+
+// --------------------------------------------------------------------------------------------------------------------
+// memory management
+// --------------------------------------------------------------------------------------------------------------------
+
+// we are currently using the tp register as the allocation pointer
+
+allocateMemory:
+    add tp, tp, a0
+    sub a0, tp, a0
     sw a1, 0(a0)
     ret
 

@@ -32,6 +32,10 @@ public class Test {
 		return TEST_STATIC_FIELD_3;
 	}
 
+	public static Object allocate() {
+		return new Object();
+	}
+
 	public static void main() {
 		storeWord(0x8000_0000, 'Z');
 	}
