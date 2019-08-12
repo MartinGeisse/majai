@@ -63,6 +63,12 @@ public class Compiler implements CodeTranslator.Context {
 		out.flush();
 	}
 
+	/*
+		Note: We cannot allow cyclic resolution since resolution must be fully finished before returning. Specifically,
+		it is not possible to break a cycle by returning a not-fully-resolved class here, since a case may happen where
+		this cycle-breaking strategy causes a superclass to be returned not-fully-resolved.
+		Therefore, all recursive resolution must be inherently non-cyclic (i.e. only superclasses and interfaces).
+	 */
 	public ClassInfo resolveClass(String name) {
 		name = NameUtil.normalizeClassName(name);
 		ClassInfo info = classInfos.get(name);
@@ -75,7 +81,6 @@ public class Compiler implements CodeTranslator.Context {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			info.initializeClassInfo();
 
 			// resolve superclasses first, then build a field allocator
 			if (info.superName == null) {
@@ -85,7 +90,7 @@ public class Compiler implements CodeTranslator.Context {
 				info.fieldAllocator = new FieldAllocator(superclassInfo.fieldAllocator);
 			}
 
-			// allocate fields TODO store the locations!
+			// allocate fields
 			for (FieldNode field : info.fields) {
 				FieldInfo fieldInfo = (FieldInfo)field;
 				FieldAllocator thisFieldAllocator = (field.access & Opcodes.ACC_STATIC) == 0 ? info.fieldAllocator : staticFieldAllocator;

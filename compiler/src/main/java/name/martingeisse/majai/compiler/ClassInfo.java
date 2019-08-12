@@ -34,7 +34,4 @@ public class ClassInfo extends ClassNode {
 		return method;
 	}
 
-	public void initializeClassInfo() {
-	}
-
 }
