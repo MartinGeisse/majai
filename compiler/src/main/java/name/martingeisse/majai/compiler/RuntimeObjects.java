@@ -1,5 +1,7 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.compiler.fake_runtime.LabelReference;
+
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +16,11 @@ public final class RuntimeObjects {
 	private final Map<Object, String> labels = new HashMap<>();
 
 	public String getLabel(Object o) {
-		return labels.computeIfAbsent(o, o2 -> "object" + labels.size());
+		if (o instanceof LabelReference) {
+			return ((LabelReference) o).getLabel();
+		} else {
+			return labels.computeIfAbsent(o, o2 -> "object" + labels.size());
+		}
 	}
 
 	public void emit(PrintWriter out) {
@@ -38,7 +44,9 @@ public final class RuntimeObjects {
 					continue;
 				}
 				out.println(entry.getValue() + ":");
-				serializer.serialize(entry.getKey());
+				if (!(entry.getKey() instanceof LabelReference)) {
+					serializer.serialize(entry.getKey());
+				}
 			}
 		}
 

@@ -1,7 +1,5 @@
 package name.martingeisse.majai.compiler;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.PrintWriter;
 
 public abstract class RuntimeObjectSerializer {
