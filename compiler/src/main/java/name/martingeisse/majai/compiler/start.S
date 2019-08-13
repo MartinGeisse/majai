@@ -23,7 +23,7 @@ start:
     lui sp, 0x00001
 
     // initialize the TP register to the beginning of the dynamic heap
-    li tp, dynamicHeap
+    la tp, dynamicHeap
 
     // test routines
     call name_martingeisse_majai_payload_SelfTest_return99__I
