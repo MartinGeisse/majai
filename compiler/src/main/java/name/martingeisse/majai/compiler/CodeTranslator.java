@@ -12,58 +12,56 @@ class CodeTranslator {
 
 	private final Context context;
 	private final PrintWriter out;
-	private final ClassInfo classInfo;
-	private final MethodNode methodNode;
+	private final MethodInfo methodInfo;
 	private final String mangledMethodName;
 	private final String returnLabel;
 
-	CodeTranslator(Context context, PrintWriter out, ClassInfo classInfo, MethodNode methodNode) {
+	CodeTranslator(Context context, PrintWriter out, MethodInfo methodInfo) {
 		this.context = context;
 		this.out = out;
-		this.classInfo = classInfo;
-		this.methodNode = methodNode;
-		this.mangledMethodName = NameUtil.mangleMethodName(classInfo, methodNode);
+		this.methodInfo = methodInfo;
+		this.mangledMethodName = NameUtil.mangleMethodName(methodInfo);
 		this.returnLabel = mangledMethodName + "__return";
 	}
 
 	void translate() {
-		if (methodNode.name.equals("<init>")) {
+		if (methodInfo.name.equals("<init>")) {
 			return;
 		}
-		if (methodNode.name.equals("<clinit>")) {
+		if (methodInfo.name.equals("<clinit>")) {
 			throw new UnsupportedOperationException("static initializer not yet supported");
 		}
-		if ((methodNode.access & Opcodes.ACC_NATIVE) != 0) {
+		if ((methodInfo.access & Opcodes.ACC_NATIVE) != 0) {
 			return;
 		}
-		if ((methodNode.access & Opcodes.ACC_STATIC) == 0) {
-			throw new UnsupportedOperationException("only static methods allowed: " + methodNode.name);
+		if ((methodInfo.access & Opcodes.ACC_STATIC) == 0) {
+			throw new UnsupportedOperationException("only static methods allowed: " + methodInfo.name);
 		}
 
 		// intro
 		out.println(mangledMethodName + ':');
-		out.println("	addi sp, sp, -" + (methodNode.maxLocals + 2) * 4);
-		out.println("	sw ra, " + ((methodNode.maxLocals) * 4) + "(sp)");
-		out.println("	sw s0, " + ((methodNode.maxLocals + 1) * 4) + "(sp)");
+		out.println("	addi sp, sp, -" + (methodInfo.maxLocals + 2) * 4);
+		out.println("	sw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
+		out.println("	sw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
 		out.println("	mv s0, sp");
 		{
-			int words = (methodNode.access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
-			words += new ParsedMethodDescriptor(methodNode.desc).getParameterWords();
+			int words = (methodInfo.access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
+			words += new ParsedMethodDescriptor(methodInfo.desc).getParameterWords();
 			for (int i = 0; i < words; i++) {
 				out.println("	sw a" + i + ", " + (i * 4) + "(s0)");
 			}
 		}
 
 		// code
-		for (AbstractInsnNode instruction = methodNode.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
+		for (AbstractInsnNode instruction = methodInfo.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
 			translate(instruction);
 		}
 
 		// outro
 		out.println(returnLabel + ':');
-		out.println("	lw s0, " + ((methodNode.maxLocals + 1) * 4) + "(sp)");
-		out.println("	lw ra, " + ((methodNode.maxLocals) * 4) + "(sp)");
-		out.println("	add sp, sp, " + (methodNode.maxLocals + 2) * 4);
+		out.println("	lw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
+		out.println("	lw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
+		out.println("	add sp, sp, " + (methodInfo.maxLocals + 2) * 4);
 		out.println("	ret");
 		out.println("");
 

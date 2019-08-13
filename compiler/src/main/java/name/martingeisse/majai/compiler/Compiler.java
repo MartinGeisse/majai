@@ -142,7 +142,7 @@ public class Compiler implements CodeTranslator.Context {
 				out.println("//");
 				out.println("");
 				for (MethodNode methodNode : classInfo.methods) {
-					new CodeTranslator(this, out, classInfo, methodNode).translate();
+					new CodeTranslator(this, out, (MethodInfo)methodNode).translate();
 				}
 
 				out.println();
