@@ -1,6 +1,7 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.vm.VmClass;
+import name.martingeisse.majai.vm.VmInterface;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -76,6 +77,10 @@ public class Compiler implements CodeTranslator.Context {
 		data is generated during compilation. Referring to these objects is possible, though.
 	 */
 	public ClassInfo resolveClass(String name) {
+		if (name.startsWith("[")) {
+			throw new IllegalArgumentException("cannot use resolveClass() for array classes");
+		}
+
 		name = NameUtil.normalizeClassName(name);
 		ClassInfo info = classInfos.get(name);
 		if (info == null) {
@@ -102,7 +107,7 @@ public class Compiler implements CodeTranslator.Context {
 
 			// allocate fields
 			for (FieldNode field : info.fields) {
-				FieldInfo fieldInfo = (FieldInfo)field;
+				FieldInfo fieldInfo = (FieldInfo) field;
 				FieldAllocator thisFieldAllocator = (field.access & Opcodes.ACC_STATIC) == 0 ? info.fieldAllocator : staticFieldAllocator;
 				switch (field.desc) {
 
@@ -127,6 +132,23 @@ public class Compiler implements CodeTranslator.Context {
 				}
 			}
 			info.fieldAllocator.seal();
+
+			// allocate vtable entries
+			for (MethodNode method : info.methods) {
+				MethodInfo methodInfo = (MethodInfo) method;
+				if ((method.access & Opcodes.ACC_STATIC) == 0 && !method.name.equals("<init>")) {
+					methodInfo.vtableIndex = info.vtableAllocator.allocateMethod(method);
+				}
+			}
+			info.vtableAllocator.seal();
+
+			// create run-time metadata objects but do not fill them with data yet
+			if ((info.access & Opcodes.ACC_INTERFACE) != 0) {
+				info.runtimeMetadataContributor = new VmInterface(name);
+			} else {
+				VmClass parentClass = (superclassInfo == null ? null : (VmClass) superclassInfo.runtimeMetadataContributor);
+				info.runtimeMetadataContributor = new VmClass(name, parentClass, info.vtableAllocator.buildVtable());
+			}
 
 			// publish the ClassInfo for this class
 			classInfos.put(name, info);
@@ -171,7 +193,7 @@ public class Compiler implements CodeTranslator.Context {
 				out.println("//");
 				out.println("");
 				for (MethodNode methodNode : classInfo.methods) {
-					new CodeTranslator(this, out, (MethodInfo)methodNode).translate();
+					new CodeTranslator(this, out, (MethodInfo) methodNode).translate();
 				}
 
 				out.println();
