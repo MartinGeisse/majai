@@ -25,14 +25,12 @@ start:
     // initialize the TP register to the beginning of the dynamic heap
     li tp, dynamicHeap
 
-    // main program
-    // li a0, 7
-    // call name_martingeisse_majai_payload_Test_foo_I_I
-    // sw a0, -8(x0)
-    call name_martingeisse_majai_payload_Test_main__V
+    // test routines
+    call name_martingeisse_majai_payload_SelfTest_return99__I
+    sw a0, -8(x0)
 
     // quit simulator
-    // sw x0, -4(x0)
+    sw x0, -4(x0)
 
     // hang in case this is real hardware
 hang:
@@ -41,14 +39,6 @@ hang:
 // interrupt logic
 interruptEntry:
     j interruptEntry
-
-// --------------------------------------------------------------------------------------------------------------------
-// various native methods
-// --------------------------------------------------------------------------------------------------------------------
-
-name_martingeisse_majai_payload_Test_storeWord_II_V:
-    sw a1, 0(a0)
-    ret
 
 // --------------------------------------------------------------------------------------------------------------------
 // memory management
