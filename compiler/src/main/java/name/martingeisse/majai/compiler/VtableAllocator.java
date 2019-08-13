@@ -76,4 +76,11 @@ public final class VtableAllocator {
 		}
 	}
 
+	public Object[] buildVtable() {
+		if (!sealed) {
+			throw new IllegalArgumentException("cannot use an unsealed vtable allocator to build the vtable");
+		}
+		TODO
+	}
+
 }
