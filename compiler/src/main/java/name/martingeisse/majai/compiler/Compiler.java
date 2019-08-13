@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.vm.VmClass;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -54,7 +55,8 @@ public class Compiler implements CodeTranslator.Context {
 		}
 		javaLangObject = resolveClass("java.lang.Object");
 		javaLangArray = resolveClass("java.lang.Array");
-		compileClass(mainClassName); // TODO compile all resolved classes? e.g. static initializers
+		compileClass(mainClassName);
+		compileAllResolvedClasses();
 		emitStaticFields();
 		runtimeObjects.emit(out);
 		out.println();
@@ -68,6 +70,10 @@ public class Compiler implements CodeTranslator.Context {
 		it is not possible to break a cycle by returning a not-fully-resolved class here, since a case may happen where
 		this cycle-breaking strategy causes a superclass to be returned not-fully-resolved.
 		Therefore, all recursive resolution must be inherently non-cyclic (i.e. only superclasses and interfaces).
+		-
+		Fully resolved means that the field locations and vtable indices are allocated and that the objects for
+		run-time metadata have been created. However, these objects have not been filled with data yet, since that
+		data is generated during compilation. Referring to these objects is possible, though.
 	 */
 	public ClassInfo resolveClass(String name) {
 		name = NameUtil.normalizeClassName(name);
@@ -82,12 +88,16 @@ public class Compiler implements CodeTranslator.Context {
 				throw new RuntimeException(e);
 			}
 
-			// resolve superclasses first, then build a field allocator
+			// resolve superclasses first, then build a field allocator and a vtable allocator
+			ClassInfo superclassInfo;
 			if (info.superName == null) {
+				superclassInfo = null;
 				info.fieldAllocator = new FieldAllocator();
+				info.vtableAllocator = new VtableAllocator();
 			} else {
-				ClassInfo superclassInfo = resolveClass(info.superName);
+				superclassInfo = resolveClass(info.superName);
 				info.fieldAllocator = new FieldAllocator(superclassInfo.fieldAllocator);
+				info.vtableAllocator = new VtableAllocator(superclassInfo.vtableAllocator);
 			}
 
 			// allocate fields
@@ -125,6 +135,25 @@ public class Compiler implements CodeTranslator.Context {
 		return info;
 	}
 
+	/**
+	 * Compiles all currently resolved classes as well as, recursively, classes that get resolved while compiling.
+	 */
+	private void compileAllResolvedClasses() {
+		while (true) {
+			Set<String> batch = new HashSet<>(classInfos.keySet());
+			batch.removeAll(compiledClasses);
+			if (batch.isEmpty()) {
+				break;
+			}
+			for (String className : batch) {
+				compileClass(className);
+			}
+		}
+	}
+
+	/**
+	 * Compiles a single class (does nothing if that class is already compiled).
+	 */
 	private void compileClass(String name) {
 		try {
 			name = NameUtil.normalizeClassName(name);

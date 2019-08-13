@@ -1,5 +1,10 @@
 package name.martingeisse.majai.compiler;
 
+import org.objectweb.asm.tree.MethodNode;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Allocates the position of methods in a vtable, either from scratch (for java.lang.Object) or based on a parent
  * allocator (for subclasses). Overriding methods re-use the vtable index of the overridden method. Other methods
@@ -11,16 +16,26 @@ package name.martingeisse.majai.compiler;
  */
 public final class VtableAllocator {
 
+	private final List<String> entryKeys;
+	private final List<MethodNode> entryMethods;
 	private boolean sealed;
 
 	public VtableAllocator() {
+		entryKeys = new ArrayList<>();
+		entryMethods = new ArrayList<>();
 		sealed = false;
+		for (int i = 0; i < LayoutConstants.VTABLE_FIXED_ENTRY_COUNT; i++) {
+			entryKeys.add("");
+			entryMethods.add(null);
+		}
 	}
 
 	public VtableAllocator(VtableAllocator parent) {
 		if (!parent.sealed) {
 			throw new IllegalArgumentException("cannot use an unsealed vtable allocator as parent");
 		}
+		entryKeys = new ArrayList<>(parent.entryKeys);
+		entryMethods = new ArrayList<>(parent.entryMethods);
 		this.sealed = false;
 	}
 
@@ -28,9 +43,26 @@ public final class VtableAllocator {
 		return sealed;
 	}
 
-	public int allocateMethod() {
+	public int allocateMethod(MethodNode method) {
 		checkNotSealed();
-		return 0;
+		String key = getKey(method);
+		int index = entryKeys.indexOf(key);
+		if (index < 0) {
+			index = entryKeys.size();
+			entryKeys.add(key);
+			entryMethods.add(method);
+		} else {
+			entryMethods.set(index, method);
+		}
+		return index;
+	}
+
+	private static String getKey(MethodNode method) {
+		int index = method.desc.indexOf(')');
+		if (index < 0) {
+			throw new RuntimeException("invalid method descriptor: " + method.desc);
+		}
+		return method.name + method.desc.substring(0, index + 1);
 	}
 
 	public void seal() {
