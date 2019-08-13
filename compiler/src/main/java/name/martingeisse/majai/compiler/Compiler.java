@@ -137,7 +137,7 @@ public class Compiler implements CodeTranslator.Context {
 			for (MethodNode method : info.methods) {
 				MethodInfo methodInfo = (MethodInfo) method;
 				if ((method.access & Opcodes.ACC_STATIC) == 0 && !method.name.equals("<init>")) {
-					methodInfo.vtableIndex = info.vtableAllocator.allocateMethod(method);
+					methodInfo.vtableIndex = info.vtableAllocator.allocateMethod(methodInfo);
 				}
 			}
 			info.vtableAllocator.seal();

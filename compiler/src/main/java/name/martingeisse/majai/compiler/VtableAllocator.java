@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.compiler.fake_runtime.LabelReference;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.List;
 public final class VtableAllocator {
 
 	private final List<String> entryKeys;
-	private final List<MethodNode> entryMethods;
+	private final List<MethodInfo> entryMethods;
 	private boolean sealed;
 
 	public VtableAllocator() {
@@ -43,7 +44,7 @@ public final class VtableAllocator {
 		return sealed;
 	}
 
-	public int allocateMethod(MethodNode method) {
+	public int allocateMethod(MethodInfo method) {
 		checkNotSealed();
 		String key = getKey(method);
 		int index = entryKeys.indexOf(key);
@@ -80,7 +81,12 @@ public final class VtableAllocator {
 		if (!sealed) {
 			throw new IllegalArgumentException("cannot use an unsealed vtable allocator to build the vtable");
 		}
-		TODO
+		Object[] vtable = new Object[entryMethods.size()];
+		vtable[LayoutConstants.VTABLE_METADATA_INDEX] = null; // TODO
+		for (int i = 1; i < entryMethods.size(); i++) {
+			vtable[i] = new LabelReference(NameUtil.mangleMethodName(entryMethods.get(i)));
+		}
+		return vtable;
 	}
 
 }
