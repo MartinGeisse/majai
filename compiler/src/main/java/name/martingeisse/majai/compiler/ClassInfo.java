@@ -22,14 +22,14 @@ public class ClassInfo extends ClassNode {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-		FieldInfo field = new FieldInfo(access, name, descriptor, signature, value);
+		FieldInfo field = new FieldInfo(this, access, name, descriptor, signature, value);
 		fields.add(field);
 		return field;
 	}
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-		MethodInfo method = new MethodInfo(access, name, descriptor, signature, exceptions);
+		MethodInfo method = new MethodInfo(this, access, name, descriptor, signature, exceptions);
 		methods.add(method);
 		return method;
 	}
