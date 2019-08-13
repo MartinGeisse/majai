@@ -2,6 +2,9 @@ package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.vm.VmClass;
 import name.martingeisse.majai.vm.VmInterface;
+import name.martingeisse.majai.vm.VmObjectMetadata;
+import name.martingeisse.majai.vm.VmObjectMetadataContributor;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -59,7 +62,9 @@ public class Compiler implements CodeTranslator.Context {
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
 		emitStaticFields();
+		emitRuntimeObjectsAliasLabels(true);
 		runtimeObjects.emit(out);
+		emitRuntimeObjectsAliasLabels(false);
 		out.println();
 		out.println(".data");
 		out.println("dynamicHeap:");
@@ -216,8 +221,30 @@ public class Compiler implements CodeTranslator.Context {
 		out.println("");
 		out.println(".data");
 		out.println("staticFields:");
-		out.println("	.fill " + staticFieldAllocator.getWordCount() + ", 4, 0");
+		out.println("\t.fill " + staticFieldAllocator.getWordCount() + ", 4, 0");
 		out.println();
+	}
+
+	private void emitRuntimeObjectsAliasLabels(boolean dryRun) {
+		if (!dryRun) {
+			out.println("//");
+			out.println("// alias labels for runtime objects");
+			out.println("//");
+			out.println("");
+			out.println(".data");
+		}
+		for (ClassInfo classInfo : classInfos.values()) {
+			VmObjectMetadataContributor contributor = classInfo.runtimeMetadataContributor;
+			if (contributor instanceof VmObjectMetadata) {
+				String generatedLabel = getRuntimeObjectLabel(((VmObjectMetadata) contributor).getVtable());
+				if (!dryRun) {
+					out.println(".set " + NameUtil.mangleClassName(classInfo) + "_vtable, " + generatedLabel);
+				}
+			}
+		}
+		if (!dryRun) {
+			out.println();
+		}
 	}
 
 	@Override

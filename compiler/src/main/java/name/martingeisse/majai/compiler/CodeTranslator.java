@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.vm.VmClass;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -40,15 +41,15 @@ class CodeTranslator {
 
 		// intro
 		out.println(mangledMethodName + ':');
-		out.println("	addi sp, sp, -" + (methodInfo.maxLocals + 2) * 4);
-		out.println("	sw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
-		out.println("	sw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
-		out.println("	mv s0, sp");
+		out.println("\taddi sp, sp, -" + (methodInfo.maxLocals + 2) * 4);
+		out.println("\tsw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
+		out.println("\tsw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
+		out.println("\tmv s0, sp");
 		{
 			int words = (methodInfo.access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
 			words += new ParsedMethodDescriptor(methodInfo.desc).getParameterWords();
 			for (int i = 0; i < words; i++) {
-				out.println("	sw a" + i + ", " + (i * 4) + "(s0)");
+				out.println("\tsw a" + i + ", " + (i * 4) + "(s0)");
 			}
 		}
 
@@ -59,10 +60,10 @@ class CodeTranslator {
 
 		// outro
 		out.println(returnLabel + ':');
-		out.println("	lw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
-		out.println("	lw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
-		out.println("	add sp, sp, " + (methodInfo.maxLocals + 2) * 4);
-		out.println("	ret");
+		out.println("\tlw s0, " + ((methodInfo.maxLocals + 1) * 4) + "(sp)");
+		out.println("\tlw ra, " + ((methodInfo.maxLocals) * 4) + "(sp)");
+		out.println("\tadd sp, sp, " + (methodInfo.maxLocals + 2) * 4);
+		out.println("\tret");
 		out.println("");
 
 	}
@@ -186,70 +187,70 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.POP:
-				out.println("	add sp, sp, 4");
+				out.println("\tadd sp, sp, 4");
 				break;
 
 			case Opcodes.POP2:
-				out.println("	add sp, sp, 8");
+				out.println("\tadd sp, sp, 8");
 				break;
 
 			case Opcodes.DUP:
-				out.println("	lw t0, 0(sp)");
-				out.println("	addi sp, sp, -4");
-				out.println("	sw t0, 0(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\taddi sp, sp, -4");
+				out.println("\tsw t0, 0(sp)");
 				break;
 
 			case Opcodes.DUP_X1:
-				out.println("	lw t0, 0(sp)");
-				out.println("	lw t1, 4(sp)");
-				out.println("	addi sp, sp, -4");
-				out.println("	sw t0, 0(sp)");
-				out.println("	sw t1, 4(sp)");
-				out.println("	sw t0, 8(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\tlw t1, 4(sp)");
+				out.println("\taddi sp, sp, -4");
+				out.println("\tsw t0, 0(sp)");
+				out.println("\tsw t1, 4(sp)");
+				out.println("\tsw t0, 8(sp)");
 				break;
 
 			case Opcodes.DUP_X2:
-				out.println("	lw t0, 0(sp)");
-				out.println("	lw t1, 4(sp)");
-				out.println("	lw t2, 8(sp)");
-				out.println("	addi sp, sp, -4");
-				out.println("	sw t0, 0(sp)");
-				out.println("	sw t1, 4(sp)");
-				out.println("	sw t2, 8(sp)");
-				out.println("	sw t0, 0(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\tlw t1, 4(sp)");
+				out.println("\tlw t2, 8(sp)");
+				out.println("\taddi sp, sp, -4");
+				out.println("\tsw t0, 0(sp)");
+				out.println("\tsw t1, 4(sp)");
+				out.println("\tsw t2, 8(sp)");
+				out.println("\tsw t0, 0(sp)");
 				break;
 
 			case Opcodes.DUP2_X1:
-				out.println("	lw t0, 0(sp)");
-				out.println("	lw t1, 4(sp)");
-				out.println("	lw t2, 8(sp)");
-				out.println("	addi sp, sp, -4");
-				out.println("	sw t0, 0(sp)");
-				out.println("	sw t1, 4(sp)");
-				out.println("	sw t2, 8(sp)");
-				out.println("	sw t0, 12(sp)");
-				out.println("	sw t1, 16(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\tlw t1, 4(sp)");
+				out.println("\tlw t2, 8(sp)");
+				out.println("\taddi sp, sp, -4");
+				out.println("\tsw t0, 0(sp)");
+				out.println("\tsw t1, 4(sp)");
+				out.println("\tsw t2, 8(sp)");
+				out.println("\tsw t0, 12(sp)");
+				out.println("\tsw t1, 16(sp)");
 				break;
 
 			case Opcodes.DUP2_X2:
-				out.println("	lw t0, 0(sp)");
-				out.println("	lw t1, 4(sp)");
-				out.println("	lw t2, 8(sp)");
-				out.println("	lw t3, 8(sp)");
-				out.println("	addi sp, sp, -8");
-				out.println("	sw t0, 0(sp)");
-				out.println("	sw t1, 4(sp)");
-				out.println("	sw t2, 8(sp)");
-				out.println("	sw t3, 12(sp)");
-				out.println("	sw t0, 16(sp)");
-				out.println("	sw t1, 20(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\tlw t1, 4(sp)");
+				out.println("\tlw t2, 8(sp)");
+				out.println("\tlw t3, 8(sp)");
+				out.println("\taddi sp, sp, -8");
+				out.println("\tsw t0, 0(sp)");
+				out.println("\tsw t1, 4(sp)");
+				out.println("\tsw t2, 8(sp)");
+				out.println("\tsw t3, 12(sp)");
+				out.println("\tsw t0, 16(sp)");
+				out.println("\tsw t1, 20(sp)");
 				break;
 
 			case Opcodes.SWAP:
-				out.println("	lw t0, 0(sp)");
-				out.println("	lw t1, 4(sp)");
-				out.println("	sw t1, 0(sp)");
-				out.println("	sw t0, 4(sp)");
+				out.println("\tlw t0, 0(sp)");
+				out.println("\tlw t1, 4(sp)");
+				out.println("\tsw t1, 0(sp)");
+				out.println("\tsw t0, 4(sp)");
 				break;
 
 			case Opcodes.IADD:
@@ -350,9 +351,9 @@ class CodeTranslator {
 
 			case Opcodes.IINC: {
 				IincInsnNode inc = (IincInsnNode)instruction;
-				out.println("	lw t0, " + (inc.var * 4) + "(s0)");
-				out.println("	addi t0, t0, " + inc.incr);
-				out.println("	sw t0, " + (inc.var * 4) + "(s0)");
+				out.println("\tlw t0, " + (inc.var * 4) + "(s0)");
+				out.println("\taddi t0, t0, " + inc.incr);
+				out.println("\tsw t0, " + (inc.var * 4) + "(s0)");
 				break;
 			}
 
@@ -371,18 +372,18 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.I2B:
-				out.println("	lb t0, 0(sp)");
-				out.println("	sw t0, 0(sp)");
+				out.println("\tlb t0, 0(sp)");
+				out.println("\tsw t0, 0(sp)");
 				break;
 
 			case Opcodes.I2C:
-				out.println("	lhu t0, 0(sp)");
-				out.println("	sw t0, 0(sp)");
+				out.println("\tlhu t0, 0(sp)");
+				out.println("\tsw t0, 0(sp)");
 				break;
 
 			case Opcodes.I2S:
-				out.println("	lh t0, 0(sp)");
-				out.println("	sw t0, 0(sp)");
+				out.println("\tlh t0, 0(sp)");
+				out.println("\tsw t0, 0(sp)");
 				break;
 
 			case Opcodes.LCMP:
@@ -449,7 +450,7 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.GOTO:
-				out.println("	j " + getTargetLabel(instruction));
+				out.println("\tj " + getTargetLabel(instruction));
 				break;
 
 			case Opcodes.JSR:
@@ -462,18 +463,18 @@ class CodeTranslator {
 			case Opcodes.FRETURN:
 			case Opcodes.ARETURN:
 				pop("a0");
-				out.println("	j " + returnLabel);
+				out.println("\tj " + returnLabel);
 				break;
 
 			case Opcodes.LRETURN:
 			case Opcodes.DRETURN:
 				pop("a0");
 				pop("a1");
-				out.println("	j " + returnLabel);
+				out.println("\tj " + returnLabel);
 				break;
 
 			case Opcodes.RETURN:
-				out.println("	j " + returnLabel);
+				out.println("\tj " + returnLabel);
 				break;
 
 			case Opcodes.GETSTATIC: {
@@ -497,27 +498,15 @@ class CodeTranslator {
 			}
 
 			case Opcodes.INVOKEVIRTUAL:
-			case Opcodes.INVOKESPECIAL:
 				throw new NotYetImplementedException();
 
-			case Opcodes.INVOKESTATIC: {
-				MethodInsnNode call = (MethodInsnNode)instruction;
-				ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
-				for (int i = 0; i < parsedMethodDescriptor.getParameterWords(); i++) {
-					out.println("	lw a" + i + ", " + (4 * (parsedMethodDescriptor.getParameterWords() - 1 - i)) + "(sp)");
-				}
-				out.println("	addi sp, sp, " + (4 * parsedMethodDescriptor.getParameterWords()));
-				out.println("	call " + NameUtil.mangleMethodName(call));
-				if (parsedMethodDescriptor.getReturnWords() == 1) {
-					out.println("	addi sp, sp, -4");
-					out.println("	sw a0, 0(sp)");
-				} else if (parsedMethodDescriptor.getReturnWords() == 2) {
-					out.println("	addi sp, sp, -8");
-					out.println("	sw a0, 0(sp)");
-					out.println("	sw a1, 4(sp)");
-				}
+			case Opcodes.INVOKESPECIAL:
+				invokenonvirtual((MethodInsnNode)instruction, false);
 				break;
-			}
+
+			case Opcodes.INVOKESTATIC:
+				invokenonvirtual((MethodInsnNode)instruction, true);
+				break;
 
 			case Opcodes.INVOKEINTERFACE:
 			case Opcodes.INVOKEDYNAMIC:
@@ -526,9 +515,12 @@ class CodeTranslator {
 			case Opcodes.NEW: {
 				TypeInsnNode typeInstruction = (TypeInsnNode)instruction;
 				String className = typeInstruction.desc;
-				context.resolveClass(className);
-				out.println("	call allocateMemory");
+				ClassInfo classInfo = context.resolveClass(className);
+				out.println("\tli a0, " + classInfo.fieldAllocator.getWordCount());
+				out.println("\tla a1, " + NameUtil.mangleClassName(classInfo) + "_vtable");
+				out.println("\tcall allocateMemory");
 				push("a0");
+				break;
 			}
 
 			case Opcodes.NEWARRAY:
@@ -562,7 +554,7 @@ class CodeTranslator {
 	}
 
 	private void pushInt(int value) {
-		out.println("	li t0, " + value);
+		out.println("\tli t0, " + value);
 		push("t0");
 	}
 
@@ -572,13 +564,13 @@ class CodeTranslator {
 	}
 
 	private void load32(int index) {
-		out.println("	lw t0, " + (index * 4) + "(s0)");
+		out.println("\tlw t0, " + (index * 4) + "(s0)");
 		push("t0");
 	}
 
 	private void store32(int index) {
 		pop("t0");
-		out.println("	sw t0, " + (index * 4) + "(s0)");
+		out.println("\tsw t0, " + (index * 4) + "(s0)");
 	}
 
 	private void load64(int index) {
@@ -592,25 +584,25 @@ class CodeTranslator {
 	}
 
 	private void push(String register) {
-		out.println("	addi sp, sp, -4");
-		out.println("	sw " + register + ", 0(sp)");
+		out.println("\taddi sp, sp, -4");
+		out.println("\tsw " + register + ", 0(sp)");
 	}
 
 	private void pop(String register) {
-		out.println("	lw " + register + ", 0(sp)");
-		out.println("	add sp, sp, 4");
+		out.println("\tlw " + register + ", 0(sp)");
+		out.println("\tadd sp, sp, 4");
 	}
 
 	private void peek(String register) {
-		out.println("	lw " + register + ", 0(sp)");
+		out.println("\tlw " + register + ", 0(sp)");
 	}
 
 	private void wordOp(String instruction) {
-		out.println("	lw t0, 4(sp)");
-		out.println("	lw t1, 0(sp)");
-		out.println("	" + instruction + " t0, t0, t1");
-		out.println("	add sp, sp, 4");
-		out.println("	sw t0, 0(sp)");
+		out.println("\tlw t0, 4(sp)");
+		out.println("\tlw t1, 0(sp)");
+		out.println("\t" + instruction + " t0, t0, t1");
+		out.println("\tadd sp, sp, 4");
+		out.println("\tsw t0, 0(sp)");
 	}
 
 	private void branch(AbstractInsnNode bytecodeInstruction, String machineInstruction, boolean implicitZero) {
@@ -618,7 +610,7 @@ class CodeTranslator {
 			pop("t1");
 		}
 		pop("t0");
-		out.println("	" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getTargetLabel(bytecodeInstruction));
+		out.println("\t" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getTargetLabel(bytecodeInstruction));
 	}
 
 	private String getTargetLabel(AbstractInsnNode instruction) {
@@ -652,15 +644,15 @@ class CodeTranslator {
 		int offset = ((FieldInfo)field).storageOffset;
 		int words = getFieldWords(field.desc);
 		if (words == 1) {
-			out.println("	addi sp, sp, -4");
-			out.println("	lw t0, staticFields + " + offset);
-			out.println("	sw t0, 0(sp)");
+			out.println("\taddi sp, sp, -4");
+			out.println("\tlw t0, staticFields + " + offset);
+			out.println("\tsw t0, 0(sp)");
 		} else {
-			out.println("	addi sp, sp, -8");
-			out.println("	lw t0, staticFields + " + offset);
-			out.println("	sw t0, 0(sp)");
-			out.println("	lw t0, staticFields + " + (offset + 4));
-			out.println("	sw t0, 4(sp)");
+			out.println("\taddi sp, sp, -8");
+			out.println("\tlw t0, staticFields + " + offset);
+			out.println("\tsw t0, 0(sp)");
+			out.println("\tlw t0, staticFields + " + (offset + 4));
+			out.println("\tsw t0, 4(sp)");
 		}
 	}
 
@@ -668,15 +660,15 @@ class CodeTranslator {
 		int offset = ((FieldInfo)field).storageOffset;
 		int words = getFieldWords(field.desc);
 		if (words == 1) {
-			out.println("	lw t0, 0(sp)");
-			out.println("	sw t0, staticFields + " + offset);
-			out.println("	addi sp, sp, 4");
+			out.println("\tlw t0, 0(sp)");
+			out.println("\tsw t0, staticFields + " + offset);
+			out.println("\taddi sp, sp, 4");
 		} else {
-			out.println("	lw t0, 0(sp)");
-			out.println("	sw t0, staticFields + " + offset);
-			out.println("	lw t0, 4(sp)");
-			out.println("	sw t0, staticFields + " + (offset + 4));
-			out.println("	addi sp, sp, 8");
+			out.println("\tlw t0, 0(sp)");
+			out.println("\tsw t0, staticFields + " + offset);
+			out.println("\tlw t0, 4(sp)");
+			out.println("\tsw t0, staticFields + " + (offset + 4));
+			out.println("\taddi sp, sp, 8");
 		}
 	}
 
@@ -684,16 +676,16 @@ class CodeTranslator {
 		int offset = ((FieldInfo)field).storageOffset;
 		int words = getFieldWords(field.desc);
 		if (words == 1) {
-			out.println("	lw t1, 0(sp)");
-			out.println("	lw t0, " + offset + "(t1)");
-			out.println("	sw t0, 0(sp)");
+			out.println("\tlw t1, 0(sp)");
+			out.println("\tlw t0, " + offset + "(t1)");
+			out.println("\tsw t0, 0(sp)");
 		} else {
-			out.println("	lw t1, 0(sp)");
-			out.println("	addi sp, sp, -4");
-			out.println("	lw t0, " + offset + "(t1)");
-			out.println("	sw t0, 0(sp)");
-			out.println("	lw t0, " + (offset + 4) + "(t1)");
-			out.println("	sw t0, 4(sp)");
+			out.println("\tlw t1, 0(sp)");
+			out.println("\taddi sp, sp, -4");
+			out.println("\tlw t0, " + offset + "(t1)");
+			out.println("\tsw t0, 0(sp)");
+			out.println("\tlw t0, " + (offset + 4) + "(t1)");
+			out.println("\tsw t0, 4(sp)");
 		}
 	}
 
@@ -701,57 +693,75 @@ class CodeTranslator {
 		int offset = ((FieldInfo)field).storageOffset;
 		int words = getFieldWords(field.desc);
 		if (words == 1) {
-			out.println("	lw t1, 4(sp)");
-			out.println("	lw t0, 0(sp)");
-			out.println("	sw t0, " + offset + "(t1)");
-			out.println("	addi sp, sp, 8");
+			out.println("\tlw t1, 4(sp)");
+			out.println("\tlw t0, 0(sp)");
+			out.println("\tsw t0, " + offset + "(t1)");
+			out.println("\taddi sp, sp, 8");
 		} else {
-			out.println("	lw t1, 8(sp)");
-			out.println("	lw t0, 0(sp)");
-			out.println("	sw t0, " + offset + "(t1)");
-			out.println("	lw t0, 4(sp)");
-			out.println("	sw t0, " + (offset + 4) + "(t1)");
-			out.println("	addi sp, sp, 12");
+			out.println("\tlw t1, 8(sp)");
+			out.println("\tlw t0, 0(sp)");
+			out.println("\tsw t0, " + offset + "(t1)");
+			out.println("\tlw t0, 4(sp)");
+			out.println("\tsw t0, " + (offset + 4) + "(t1)");
+			out.println("\taddi sp, sp, 12");
 		}
 	}
 
 	private void writeArrayLoad(int indexShiftAmount, boolean doubleword, String loadInstruction) {
-		out.println("	lw t0, 4(sp)");
-		out.println("	lw t1, 0(sp)");
-		out.println("	sll t1, t1, " + indexShiftAmount);
-		out.println("	add t0, t0, t1");
+		out.println("\tlw t0, 4(sp)");
+		out.println("\tlw t1, 0(sp)");
+		out.println("\tsll t1, t1, " + indexShiftAmount);
+		out.println("\tadd t0, t0, t1");
 		if (doubleword) {
-			out.println("	lw t2, " + context.getArrayHeaderSize() + "(t0)");
-			out.println("	lw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
-			out.println("	sw t2, 0(sp)");
-			out.println("	sw t3, 4(sp)");
+			out.println("\tlw t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("\tlw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
+			out.println("\tsw t2, 0(sp)");
+			out.println("\tsw t3, 4(sp)");
 		} else {
-			out.println("	" + loadInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
-			out.println("	addi sp, sp, 4");
-			out.println("	sw t2, 0(sp)");
+			out.println("\t" + loadInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("\taddi sp, sp, 4");
+			out.println("\tsw t2, 0(sp)");
 		}
 	}
 
 	private void writeArrayStore(int indexShiftAmount, boolean doubleword, String storeInstruction) {
 		if (doubleword) {
-			out.println("	lw t0, 12(sp)");
-			out.println("	lw t1, 8(sp)");
-			out.println("	lw t2, 4(sp)");
-			out.println("	lw t3, 0(sp)");
-			out.println("	addi sp, sp, 16");
+			out.println("\tlw t0, 12(sp)");
+			out.println("\tlw t1, 8(sp)");
+			out.println("\tlw t2, 4(sp)");
+			out.println("\tlw t3, 0(sp)");
+			out.println("\taddi sp, sp, 16");
 		} else {
-			out.println("	lw t0, 8(sp)");
-			out.println("	lw t1, 4(sp)");
-			out.println("	lw t2, 0(sp)");
-			out.println("	addi sp, sp, 12");
+			out.println("\tlw t0, 8(sp)");
+			out.println("\tlw t1, 4(sp)");
+			out.println("\tlw t2, 0(sp)");
+			out.println("\taddi sp, sp, 12");
 		}
-		out.println("	sll t1, t1, " + indexShiftAmount);
-		out.println("	add t0, t0, t1");
+		out.println("\tsll t1, t1, " + indexShiftAmount);
+		out.println("\tadd t0, t0, t1");
 		if (doubleword) {
-			out.println("	sw t2, " + context.getArrayHeaderSize() + "(t0)");
-			out.println("	sw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
+			out.println("\tsw t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("\tsw t3, " + (context.getArrayHeaderSize() + 4) + "(t0)");
 		} else {
-			out.println("	" + storeInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
+			out.println("\t" + storeInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
+		}
+	}
+
+	private void invokenonvirtual(MethodInsnNode call, boolean staticMethod) {
+		ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
+		int effectiveParameterWords = parsedMethodDescriptor.getParameterWords() + (staticMethod ? 0 : 1);
+		for (int i = 0; i < effectiveParameterWords; i++) {
+			out.println("\tlw a" + i + ", " + (4 * (effectiveParameterWords - 1 - i)) + "(sp)");
+		}
+		out.println("\taddi sp, sp, " + (4 * effectiveParameterWords));
+		out.println("\tcall " + NameUtil.mangleMethodName(call));
+		if (parsedMethodDescriptor.getReturnWords() == 1) {
+			out.println("\taddi sp, sp, -4");
+			out.println("\tsw a0, 0(sp)");
+		} else if (parsedMethodDescriptor.getReturnWords() == 2) {
+			out.println("\taddi sp, sp, -8");
+			out.println("\tsw a0, 0(sp)");
+			out.println("\tsw a1, 4(sp)");
 		}
 	}
 
