@@ -10,12 +10,22 @@ import java.io.InputStream;
  */
 public class ClassFileLoader {
 
+	private static final String[] pathPrefixes = {
+		"jboot/build/classes/java/main/",
+		"jboot/out/production/classes/",
+		"compiler/build/classes/java/main/",
+		"compiler/out/production/classes/",
+	};
+
 	public InputStream open(String className) throws IOException {
-		try {
-			return new FileInputStream("compiler/build/classes/java/main/" + NameUtil.normalizeClassName(className) + ".class");
-		} catch (FileNotFoundException e) {
-			return new FileInputStream("jboot/build/classes/java/main/" + NameUtil.normalizeClassName(className) + ".class");
+		for (String prefix : pathPrefixes) {
+			try {
+				return new FileInputStream(prefix + NameUtil.normalizeClassName(className) + ".class");
+			} catch (FileNotFoundException e) {
+				// continue with next prefix
+			}
 		}
+		throw new RuntimeException("could not find class file for class " + className);
 	}
 
 }

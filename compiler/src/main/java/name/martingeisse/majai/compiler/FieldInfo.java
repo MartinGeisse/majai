@@ -9,7 +9,7 @@ public class FieldInfo extends FieldNode {
     public int storageOffset;
 
     public FieldInfo(ClassInfo containingClass, int access, String name, String descriptor, String signature, Object value) {
-        super(Opcodes.ASM6, access, name, descriptor, signature, value);
+        super(Opcodes.ASM7, access, name, descriptor, signature, value);
         this.containingClass = containingClass;
     }
 

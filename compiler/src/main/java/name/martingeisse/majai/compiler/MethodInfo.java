@@ -14,7 +14,7 @@ public class MethodInfo extends MethodNode {
 	public int vtableIndex;
 
 	public MethodInfo(ClassInfo containingClass, int access, String name, String descriptor, String signature, String[] exceptions) {
-		super(Opcodes.ASM6, access, name, descriptor, signature, exceptions);
+		super(Opcodes.ASM7, access, name, descriptor, signature, exceptions);
 		this.containingClass = containingClass;
 	}
 
