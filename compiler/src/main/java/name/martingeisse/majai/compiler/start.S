@@ -25,9 +25,8 @@ start:
     // initialize the TP register to the beginning of the dynamic heap
     la tp, dynamicHeap
 
-    // test routines
-    call name_martingeisse_majai_payload_SelfTest_return99__I
-    sw a0, -8(x0)
+    // call test routine
+    call name_martingeisse_majai_payload_SelfTest_test__V
 
     // quit simulator
     sw x0, -4(x0)
@@ -50,6 +49,14 @@ allocateMemory:
     add tp, tp, a0
     sub a0, tp, a0
     sw a1, 0(a0)
+    ret
+
+// --------------------------------------------------------------------------------------------------------------------
+// native methods
+// --------------------------------------------------------------------------------------------------------------------
+
+name_martingeisse_majai_payload_SelfTest_out_I_V:
+    sw a0, -8(x0)
     ret
 
 // --------------------------------------------------------------------------------------------------------------------
