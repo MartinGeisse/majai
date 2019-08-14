@@ -1,11 +1,12 @@
 package name.martingeisse.majai.compiler;
 
-import name.martingeisse.majai.vm.VmClass;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -17,6 +18,7 @@ class CodeTranslator {
 	private final MethodInfo methodInfo;
 	private final String mangledMethodName;
 	private final String returnLabel;
+	private final List<Label> internalLabels = new ArrayList<>();
 
 	CodeTranslator(Context context, PrintWriter out, MethodInfo methodInfo) {
 		this.context = context;
@@ -55,8 +57,15 @@ class CodeTranslator {
 		}
 
 		// code
-		for (AbstractInsnNode instruction = methodInfo.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
-			translate(instruction);
+		{
+			for (AbstractInsnNode instruction = methodInfo.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
+				if (instruction instanceof LabelNode) {
+					internalLabels.add(((LabelNode) instruction).getLabel());
+				}
+			}
+			for (AbstractInsnNode instruction = methodInfo.instructions.getFirst(); instruction != null; instruction = instruction.getNext()) {
+				translate(instruction);
+			}
 		}
 
 		// outro
@@ -75,7 +84,9 @@ class CodeTranslator {
 
 			case -1:
 				if (instruction instanceof LabelNode) {
-					out.println(getLabel((LabelNode)instruction) + ':');
+					out.println(getLabelName((LabelNode) instruction) + ':');
+				} else if (instruction instanceof FrameNode) {
+					// not needed yet
 				} else {
 					throw new RuntimeException("unknown opcode-less instruction node: " + instruction);
 				}
@@ -459,7 +470,7 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.GOTO:
-				out.println("\tj " + getLabel((JumpInsnNode)instruction));
+				out.println("\tj " + getLabelName((JumpInsnNode)instruction));
 				break;
 
 			case Opcodes.JSR:
@@ -619,19 +630,27 @@ class CodeTranslator {
 			pop("t1");
 		}
 		pop("t0");
-		out.println("\t" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getLabel(bytecodeInstruction));
+		out.println("\t" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getLabelName(bytecodeInstruction));
 	}
 
-	private String getLabel(Label label) {
-		return mangledMethodName + '_' + label.getOffset();
+	private int getLabelIndex(Label label) {
+		int index = internalLabels.indexOf(label);
+		if (index < 0) {
+			throw new RuntimeException("referring to unknown internal label");
+		}
+		return index;
 	}
 
-	private String getLabel(LabelNode labelNode) {
-		return getLabel(labelNode.getLabel());
+	private String getLabelName(Label label) {
+		return mangledMethodName + '_' + getLabelIndex(label);
 	}
 
-	private String getLabel(JumpInsnNode jump) {
-		return getLabel(jump.label);
+	private String getLabelName(LabelNode labelNode) {
+		return getLabelName(labelNode.getLabel());
+	}
+
+	private String getLabelName(JumpInsnNode jump) {
+		return getLabelName(jump.label);
 	}
 
 	private FieldNode resolveField(FieldInsnNode instruction) {
