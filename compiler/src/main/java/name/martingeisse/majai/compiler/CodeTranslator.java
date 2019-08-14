@@ -1,6 +1,7 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.vm.VmClass;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -71,6 +72,14 @@ class CodeTranslator {
 	private void translate(AbstractInsnNode instruction) {
 		int opcode = instruction.getOpcode();
 		switch (opcode) {
+
+			case -1:
+				if (instruction instanceof LabelNode) {
+					out.println(getLabel((LabelNode)instruction) + ':');
+				} else {
+					throw new RuntimeException("unknown opcode-less instruction node: " + instruction);
+				}
+				break;
 
 			case Opcodes.NOP:
 				break;
@@ -394,63 +403,63 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.IFEQ:
-				branch(instruction, "beq", true);
+				branch((JumpInsnNode)instruction, "beq", true);
 				break;
 
 			case Opcodes.IFNE:
-				branch(instruction, "bne", true);
+				branch((JumpInsnNode)instruction, "bne", true);
 				break;
 
 			case Opcodes.IFLT:
-				branch(instruction, "blt", true);
+				branch((JumpInsnNode)instruction, "blt", true);
 				break;
 
 			case Opcodes.IFGE:
-				branch(instruction, "bge", true);
+				branch((JumpInsnNode)instruction, "bge", true);
 				break;
 
 			case Opcodes.IFGT:
-				branch(instruction, "bgt", true);
+				branch((JumpInsnNode)instruction, "bgt", true);
 				break;
 
 			case Opcodes.IFLE:
-				branch(instruction, "ble", true);
+				branch((JumpInsnNode)instruction, "ble", true);
 				break;
 
 			case Opcodes.IF_ICMPEQ:
-				branch(instruction, "beq", false);
+				branch((JumpInsnNode)instruction, "beq", false);
 				break;
 
 			case Opcodes.IF_ICMPNE:
-				branch(instruction, "bne", false);
+				branch((JumpInsnNode)instruction, "bne", false);
 				break;
 
 			case Opcodes.IF_ICMPLT:
-				branch(instruction, "blt", false);
+				branch((JumpInsnNode)instruction, "blt", false);
 				break;
 
 			case Opcodes.IF_ICMPGE:
-				branch(instruction, "bge", false);
+				branch((JumpInsnNode)instruction, "bge", false);
 				break;
 
 			case Opcodes.IF_ICMPGT:
-				branch(instruction, "bgt", false);
+				branch((JumpInsnNode)instruction, "bgt", false);
 				break;
 
 			case Opcodes.IF_ICMPLE:
-				branch(instruction, "ble", false);
+				branch((JumpInsnNode)instruction, "ble", false);
 				break;
 
 			case Opcodes.IF_ACMPEQ:
-				branch(instruction, "beq", false);
+				branch((JumpInsnNode)instruction, "beq", false);
 				break;
 
 			case Opcodes.IF_ACMPNE:
-				branch(instruction, "bne", false);
+				branch((JumpInsnNode)instruction, "bne", false);
 				break;
 
 			case Opcodes.GOTO:
-				out.println("\tj " + getTargetLabel(instruction));
+				out.println("\tj " + getLabel((JumpInsnNode)instruction));
 				break;
 
 			case Opcodes.JSR:
@@ -540,11 +549,11 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.IFNULL:
-				branch(instruction, "beq", true);
+				branch((JumpInsnNode)instruction, "beq", true);
 				break;
 
 			case Opcodes.IFNONNULL:
-				branch(instruction, "bne", true);
+				branch((JumpInsnNode)instruction, "bne", true);
 				break;
 
 			default:
@@ -605,16 +614,24 @@ class CodeTranslator {
 		out.println("\tsw t0, 0(sp)");
 	}
 
-	private void branch(AbstractInsnNode bytecodeInstruction, String machineInstruction, boolean implicitZero) {
+	private void branch(JumpInsnNode bytecodeInstruction, String machineInstruction, boolean implicitZero) {
 		if (!implicitZero) {
 			pop("t1");
 		}
 		pop("t0");
-		out.println("\t" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getTargetLabel(bytecodeInstruction));
+		out.println("\t" + machineInstruction + " t0, " + (implicitZero ? "x0" : "t1") + ", " + getLabel(bytecodeInstruction));
 	}
 
-	private String getTargetLabel(AbstractInsnNode instruction) {
-		return mangledMethodName + '_' + ((JumpInsnNode)instruction).label.getLabel().getOffset();
+	private String getLabel(Label label) {
+		return mangledMethodName + '_' + label.getOffset();
+	}
+
+	private String getLabel(LabelNode labelNode) {
+		return getLabel(labelNode.getLabel());
+	}
+
+	private String getLabel(JumpInsnNode jump) {
+		return getLabel(jump.label);
 	}
 
 	private FieldNode resolveField(FieldInsnNode instruction) {

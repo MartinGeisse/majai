@@ -32,9 +32,14 @@ public class SelfTest {
 //		out(return99());
 
 		// TODO breaks
-		for (int i = -2; i < 10; i++) {
-
+		int i = -2;
+		while (i < 10) {
+			i++;
 		}
+
+//		for (int i = -2; i < 10; i++) {
+//
+//		}
 
 	}
 
