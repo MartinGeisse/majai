@@ -545,9 +545,50 @@ class CodeTranslator {
 				break;
 			}
 
-			case Opcodes.NEWARRAY:
-			case Opcodes.ANEWARRAY:
-				throw new NotYetImplementedException();
+			case Opcodes.NEWARRAY: {
+				pop("a0");
+				int elementTypeCode = ((IntInsnNode)instruction).operand;
+				switch (elementTypeCode) {
+
+					case 4: // boolean
+					case 8: // byte
+						break;
+
+					case 5: // char
+					case 9: // short
+						out.println("\tsll a0, a0, 1");
+						break;
+
+					case 6: // float
+					case 10: // int
+						out.println("\tsll a0, a0, 2");
+						break;
+
+					case 7: // double
+					case 11: // long
+						out.println("\tsll a0, a0, 3");
+						break;
+
+					default:
+						throw new RuntimeException("invalid newarray element type code: " + elementTypeCode);
+
+				}
+				out.println("\tla a1, 0"); // TODO vtable
+				out.println("\tcall allocateMemory");
+				push("a0");
+				break;
+			}
+
+			case Opcodes.ANEWARRAY: {
+				pop("a0");
+				ClassInfo elementClassInfo = context.resolveClass(((TypeInsnNode)instruction).desc);
+				out.println("\tsll a0, a0, 2");
+				out.println("\tla a1, 0"); // TODO vtable
+				// TODO element object metadata
+				out.println("\tcall allocateMemory");
+				push("a0");
+				break;
+			}
 
 			case Opcodes.ARRAYLENGTH:
 				writeGetfield(resolveField(context.resolveClass("java.lang.Array"), "length", true));
