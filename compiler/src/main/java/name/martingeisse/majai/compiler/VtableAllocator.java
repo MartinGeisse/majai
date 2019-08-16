@@ -89,4 +89,16 @@ public final class VtableAllocator {
 		return vtable;
 	}
 
+	public MethodInfo findByName(String name) {
+		if (!sealed) {
+			throw new IllegalArgumentException("cannot use an unsealed vtable allocator to find a method by name");
+		}
+		for (MethodInfo methodInfo : entryMethods) {
+			if (methodInfo.name.equals(name)) {
+				return methodInfo;
+			}
+		}
+		throw new RuntimeException("method not found: " + name);
+	}
+
 }

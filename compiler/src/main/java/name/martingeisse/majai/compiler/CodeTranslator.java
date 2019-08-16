@@ -805,15 +805,24 @@ class CodeTranslator {
 
 	private void invokevirtual(MethodInsnNode call) {
 
-		// TODO copied from invokenonvirtual!!!
+		// find vtable index
+		ClassInfo targetClassInfo = context.resolveClass(call.owner);
+		int vtableIndex = targetClassInfo.vtableAllocator.findByName(call.name).vtableIndex;
 
+		// move arguments from the stack to a* registers
 		ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
 		int effectiveParameterWords = parsedMethodDescriptor.getParameterWords() + 1;
 		for (int i = 0; i < effectiveParameterWords; i++) {
 			out.println("\tlw a" + i + ", " + (4 * (effectiveParameterWords - 1 - i)) + "(sp)");
 		}
 		out.println("\taddi sp, sp, " + (4 * effectiveParameterWords));
-		out.println("\tcall " + NameUtil.mangleMethodName(call));
+
+		// invoke the method
+		out.println("\tlw t0, 0(a0)"); // load pointer to vtable from the object
+		out.println("\tlw t0, " + (context.getArrayHeaderSize() + 4 * vtableIndex) + "(t0)"); // load pointer to code from the vtable
+		out.println("\tjalr t0"); // invoke the method
+
+		// move return values from a* registers to the stack
 		if (parsedMethodDescriptor.getReturnWords() == 1) {
 			out.println("\taddi sp, sp, -4");
 			out.println("\tsw a0, 0(sp)");
@@ -822,6 +831,7 @@ class CodeTranslator {
 			out.println("\tsw a0, 0(sp)");
 			out.println("\tsw a1, 4(sp)");
 		}
+
 	}
 
 	public interface Context {
