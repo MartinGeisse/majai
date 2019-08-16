@@ -1,4 +1,4 @@
-package name.martingeisse.majai.compiler.fake_runtime;
+package name.martingeisse.majai.compiler.runtime;
 
 /**
  *

@@ -6,6 +6,7 @@ package name.martingeisse.majai.payload;
 public class SelfTest {
 
 	public static native void out(int value);
+	public static native void out(String value);
 
 	public static void test() {
 
@@ -23,7 +24,7 @@ public class SelfTest {
 		out(8);
 		out(9);
 
-		// test bipush, sipoush, ldc(int)
+		// test: bipush, sipush, ldc(int)
 		out(100);
 		out(1_000);
 		out(1_000_000);
@@ -31,10 +32,58 @@ public class SelfTest {
 		// test returning an integer
 		out(return99());
 
+		// test: aconst_null, ldc(String), if_acmpeq, if_acmpne, ifnull, ifnonnull
+		{
+			String x = "abc";
+			String y = null;
+			String z = "def";
+			String x2 = x;
+			if (x == null) {
+				out(1);
+			}
+			if (x != null) {
+				out(2);
+			}
+			if (y == null) {
+				out(3);
+			}
+			if (y != null) {
+				out(4);
+			}
+			if (x == z) {
+				out(10);
+			}
+			if (x != z) {
+				out(11);
+			}
+			if (x == x2) {
+				out(12);
+			}
+			if (x != x2) {
+				out(13);
+			}
+		}
+
+
+		// TODO: test returning a String
+		// out(returnWorld());
+
+		// test constructors, including from sublasses
+		{
+			ConstructorSub constructorSub = new ConstructorSub(3, 5);
+			out(constructorSub.x);
+			out(constructorSub.y);
+
+		}
+
 	}
 
 	public static int return99() {
 		return 99;
+	}
+
+	public static String returnWorld() {
+		return "World";
 	}
 
 }

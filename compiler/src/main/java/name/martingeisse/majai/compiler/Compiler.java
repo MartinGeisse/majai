@@ -29,7 +29,10 @@ public class Compiler implements CodeTranslator.Context {
 	private final ClassFileLoader classFileLoader;
 	private final String mainClassName;
 	private final PrintWriter out;
+
 	private final Map<String, ClassInfo> classInfos;
+	private boolean classResolutionClosed;
+
 	private final Set<String> compiledClasses;
 	private final FieldAllocator staticFieldAllocator;
 	private final RuntimeObjects runtimeObjects;
@@ -46,9 +49,10 @@ public class Compiler implements CodeTranslator.Context {
 		this.mainClassName = mainClassName;
 		this.out = out;
 		this.classInfos = new HashMap<>();
+		this.classResolutionClosed = false;
 		this.compiledClasses = new HashSet<>();
 		this.staticFieldAllocator = new FieldAllocator();
-		this.runtimeObjects = new RuntimeObjects();
+		this.runtimeObjects = new RuntimeObjects(this::resolveClass);
 	}
 
 	public void compile() {
@@ -57,10 +61,14 @@ public class Compiler implements CodeTranslator.Context {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
 		javaLangObject = resolveClass("java.lang.Object");
 		javaLangArray = resolveClass("java.lang.Array");
+		resolveClass("java/lang/String");
+
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
+		classResolutionClosed = true;
 		emitStaticFields();
 		emitRuntimeObjectsAliasLabels(true);
 		runtimeObjects.emit(out);
@@ -85,10 +93,12 @@ public class Compiler implements CodeTranslator.Context {
 		if (name.startsWith("[")) {
 			throw new IllegalArgumentException("cannot use resolveClass() for array classes");
 		}
-
 		name = NameUtil.normalizeClassName(name);
 		ClassInfo info = classInfos.get(name);
 		if (info == null) {
+			if (classResolutionClosed) {
+				throw new IllegalStateException("class resolution has been closed already (trying to resolve " + name + ")");
+			}
 
 			// build a ClassInfo object
 			info = new ClassInfo();

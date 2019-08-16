@@ -1,6 +1,6 @@
 package name.martingeisse.majai.compiler;
 
-import name.martingeisse.majai.compiler.fake_runtime.LabelReference;
+import name.martingeisse.majai.compiler.runtime.LabelReference;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -13,7 +13,12 @@ import java.util.Set;
  */
 public final class RuntimeObjects {
 
+	private final Context context;
 	private final Map<Object, String> labels = new HashMap<>();
+
+	public RuntimeObjects(Context context) {
+		this.context = context;
+	}
 
 	public String getLabel(Object o) {
 		if (o instanceof LabelReference) {
@@ -30,7 +35,7 @@ public final class RuntimeObjects {
 		out.println("");
 		out.println(".data");
 
-		RuntimeObjectSerializer serializer = new RuntimeObjectSerializer(out) {
+		RuntimeObjectSerializer serializer = new RuntimeObjectSerializer(context::resolveClass, out) {
 			@Override
 			protected String getLabel(Object o) {
 				return RuntimeObjects.this.getLabel(o);
@@ -51,6 +56,10 @@ public final class RuntimeObjects {
 		}
 
 		out.println();
+	}
+
+	public interface Context {
+		ClassInfo resolveClass(String name);
 	}
 
 }

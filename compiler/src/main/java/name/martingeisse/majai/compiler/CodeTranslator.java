@@ -131,6 +131,10 @@ class CodeTranslator {
 				LdcInsnNode ldc = (LdcInsnNode) instruction;
 				if (ldc.cst instanceof Integer) {
 					pushInt((Integer) ldc.cst);
+				} else if (ldc.cst instanceof String) {
+					String label = context.getRuntimeObjectLabel(ldc.cst);
+					out.println("\tla t0, " + label);
+					push("t0");
 				} else {
 					throw new NotYetImplementedException("ldc with anything other than Integer not supported yet; found: " + ldc.cst.getClass());
 				}

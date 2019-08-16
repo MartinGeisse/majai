@@ -1,6 +1,6 @@
 package name.martingeisse.majai.compiler;
 
-import name.martingeisse.majai.compiler.fake_runtime.LabelReference;
+import name.martingeisse.majai.compiler.runtime.LabelReference;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ArrayList;

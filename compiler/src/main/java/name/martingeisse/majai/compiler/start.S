@@ -39,6 +39,10 @@ hang:
 interruptEntry:
     j interruptEntry
 
+// useful as a branch target label to implement a conditional return
+return:
+    ret
+
 // --------------------------------------------------------------------------------------------------------------------
 // memory management
 // --------------------------------------------------------------------------------------------------------------------
@@ -56,6 +60,14 @@ allocateMemory:
 // --------------------------------------------------------------------------------------------------------------------
 
 name_martingeisse_majai_payload_SelfTest_out_I_V:
+    sw a0, -8(x0)
+    ret
+
+name_martingeisse_majai_payload_SelfTest_out_Ljava_lang_String_V:
+    lw t0, 4(a0)
+    addi a0, a0, 8
+    beq t0, x0, return
+
     sw a0, -8(x0)
     ret
 
