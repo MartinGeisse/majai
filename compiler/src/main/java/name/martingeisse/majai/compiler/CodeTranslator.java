@@ -38,9 +38,6 @@ class CodeTranslator {
 		if ((methodInfo.access & Opcodes.ACC_NATIVE) != 0) {
 			return;
 		}
-		if ((methodInfo.access & Opcodes.ACC_STATIC) == 0) {
-			throw new UnsupportedOperationException("only static methods allowed: " + methodInfo.name);
-		}
 
 		// intro
 		out.println(mangledMethodName + ':');
@@ -522,7 +519,8 @@ class CodeTranslator {
 			}
 
 			case Opcodes.INVOKEVIRTUAL:
-				throw new NotYetImplementedException();
+				invokevirtual((MethodInsnNode)instruction);
+				break;
 
 			case Opcodes.INVOKESPECIAL:
 				invokenonvirtual((MethodInsnNode)instruction, false);
@@ -790,6 +788,27 @@ class CodeTranslator {
 	private void invokenonvirtual(MethodInsnNode call, boolean staticMethod) {
 		ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
 		int effectiveParameterWords = parsedMethodDescriptor.getParameterWords() + (staticMethod ? 0 : 1);
+		for (int i = 0; i < effectiveParameterWords; i++) {
+			out.println("\tlw a" + i + ", " + (4 * (effectiveParameterWords - 1 - i)) + "(sp)");
+		}
+		out.println("\taddi sp, sp, " + (4 * effectiveParameterWords));
+		out.println("\tcall " + NameUtil.mangleMethodName(call));
+		if (parsedMethodDescriptor.getReturnWords() == 1) {
+			out.println("\taddi sp, sp, -4");
+			out.println("\tsw a0, 0(sp)");
+		} else if (parsedMethodDescriptor.getReturnWords() == 2) {
+			out.println("\taddi sp, sp, -8");
+			out.println("\tsw a0, 0(sp)");
+			out.println("\tsw a1, 4(sp)");
+		}
+	}
+
+	private void invokevirtual(MethodInsnNode call) {
+
+		// TODO copied from invokenonvirtual!!!
+
+		ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
+		int effectiveParameterWords = parsedMethodDescriptor.getParameterWords() + 1;
 		for (int i = 0; i < effectiveParameterWords; i++) {
 			out.println("\tlw a" + i + ", " + (4 * (effectiveParameterWords - 1 - i)) + "(sp)");
 		}
