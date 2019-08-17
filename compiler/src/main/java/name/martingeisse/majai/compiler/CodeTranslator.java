@@ -597,6 +597,7 @@ class CodeTranslator {
 
 				}
 				out.println("\tsll a0, a0, " + shiftAmount);
+				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
 				out.println("\tla a1, " + NameUtil.mangleClassName(classInfo) + "_vtable");
 				out.println("\tcall allocateMemory");
 				push("a0");
@@ -604,12 +605,15 @@ class CodeTranslator {
 			}
 
 			case Opcodes.ANEWARRAY: {
-				pop("a0");
+				ClassInfo objectArrayClassInfo = context.getWellKnownClassInfos().javaLangObjectArray;
 				ClassInfo elementClassInfo = context.resolveClass(((TypeInsnNode)instruction).desc);
+				pop("a0");
 				out.println("\tsll a0, a0, 2");
-				out.println("\tla a1, 0"); // TODO vtable
-				// TODO element object metadata
+				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
+				out.println("\tla a1, " + NameUtil.mangleClassName(objectArrayClassInfo) + "_vtable");
 				out.println("\tcall allocateMemory");
+				out.println("\tla t0, " + context.getRuntimeObjectLabel(elementClassInfo.runtimeMetadataContributor));
+				out.println("\tsw t0, " + resolveField(objectArrayClassInfo, "elementMetadata", true).storageOffset + "(a0)");
 				push("a0");
 				break;
 			}
@@ -725,11 +729,11 @@ class CodeTranslator {
 		return resolveField(classNode, instruction.name, true);
 	}
 
-	private FieldNode resolveField(ClassNode classNode, String name, boolean allowPrivate) {
+	private FieldInfo resolveField(ClassNode classNode, String name, boolean allowPrivate) {
 		for (FieldNode field : classNode.fields) {
 			if (allowPrivate || (field.access & Opcodes.ACC_PRIVATE) == 0) {
 				if (field.name.equals(name)) {
-					return field;
+					return (FieldInfo)field;
 				}
 			}
 		}
