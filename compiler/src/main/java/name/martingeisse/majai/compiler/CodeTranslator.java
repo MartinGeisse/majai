@@ -548,32 +548,56 @@ class CodeTranslator {
 			case Opcodes.NEWARRAY: {
 				pop("a0");
 				int elementTypeCode = ((IntInsnNode)instruction).operand;
+				ClassInfo classInfo;
+				int shiftAmount;
 				switch (elementTypeCode) {
 
 					case 4: // boolean
+						classInfo = context.getWellKnownClassInfos().javaLangBooleanArray;
+						shiftAmount = 0;
+						break;
+
 					case 8: // byte
+						classInfo = context.getWellKnownClassInfos().javaLangByteArray;
+						shiftAmount = 0;
+						break;
+
+					case 9: // short
+						classInfo = context.getWellKnownClassInfos().javaLangShortArray;
+						shiftAmount = 1;
 						break;
 
 					case 5: // char
-					case 9: // short
-						out.println("\tsll a0, a0, 1");
+						classInfo = context.getWellKnownClassInfos().javaLangCharArray;
+						shiftAmount = 1;
+						break;
+
+					case 10: // int
+						classInfo = context.getWellKnownClassInfos().javaLangIntArray;
+						shiftAmount = 2;
 						break;
 
 					case 6: // float
-					case 10: // int
-						out.println("\tsll a0, a0, 2");
+						classInfo = context.getWellKnownClassInfos().javaLangFloatArray;
+						shiftAmount = 2;
+						break;
+
+					case 11: // long
+						classInfo = context.getWellKnownClassInfos().javaLangLongArray;
+						shiftAmount = 3;
 						break;
 
 					case 7: // double
-					case 11: // long
-						out.println("\tsll a0, a0, 3");
+						classInfo = context.getWellKnownClassInfos().javaLangDoubleArray;
+						shiftAmount = 3;
 						break;
 
 					default:
 						throw new RuntimeException("invalid newarray element type code: " + elementTypeCode);
 
 				}
-				out.println("\tla a1, 0"); // TODO vtable
+				out.println("\tsll a0, a0, " + shiftAmount);
+				out.println("\tla a1, " + NameUtil.mangleClassName(classInfo) + "_vtable");
 				out.println("\tcall allocateMemory");
 				push("a0");
 				break;
@@ -591,7 +615,7 @@ class CodeTranslator {
 			}
 
 			case Opcodes.ARRAYLENGTH:
-				writeGetfield(resolveField(context.resolveClass("java.lang.Array"), "length", true));
+				writeGetfield(resolveField(context.getWellKnownClassInfos().javaLangArray, "length", true));
 				break;
 
 			case Opcodes.ATHROW:
@@ -877,6 +901,7 @@ class CodeTranslator {
 
 	public interface Context {
 		ClassInfo resolveClass(String name);
+		WellKnownClassInfos getWellKnownClassInfos();
 		int getArrayHeaderSize();
 		String getRuntimeObjectLabel(Object o);
 	}

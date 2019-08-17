@@ -34,7 +34,3 @@ sourceSets {
 		}
 	}
 }
-
-dependencies {
-	compile project(':vm')
-}

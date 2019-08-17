@@ -4,7 +4,6 @@ import name.martingeisse.majai.vm.VmClass;
 import name.martingeisse.majai.vm.VmInterface;
 import name.martingeisse.majai.vm.VmObjectMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadataContributor;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -37,8 +36,7 @@ public class Compiler implements CodeTranslator.Context {
 	private final FieldAllocator staticFieldAllocator;
 	private final RuntimeObjects runtimeObjects;
 
-	private ClassInfo javaLangObject;
-	private ClassInfo javaLangArray;
+	private WellKnownClassInfos wellKnownClassInfos;
 
 	public Compiler(ClassFileLoader classFileLoader, String mainClassName, Writer out) {
 		this(classFileLoader, mainClassName, new PrintWriter(out));
@@ -62,9 +60,20 @@ public class Compiler implements CodeTranslator.Context {
 			throw new RuntimeException(e);
 		}
 
-		javaLangObject = resolveClass("java.lang.Object");
-		javaLangArray = resolveClass("java.lang.Array");
-		resolveClass("java/lang/String");
+		wellKnownClassInfos = new WellKnownClassInfos();
+		wellKnownClassInfos.javaLangObject = resolveClass("java.lang.Object");
+		wellKnownClassInfos.javaLangString = resolveClass("java.lang.String");
+		wellKnownClassInfos.javaLangArray = resolveClass("java.lang.Array");
+		wellKnownClassInfos.javaLangPrimitiveArray = resolveClass("java.lang.PrimitiveArray");
+		wellKnownClassInfos.javaLangBooleanArray = resolveClass("java.lang.BooleanArray");
+		wellKnownClassInfos.javaLangByteArray = resolveClass("java.lang.ByteArray");
+		wellKnownClassInfos.javaLangShortArray = resolveClass("java.lang.ShortArray");
+		wellKnownClassInfos.javaLangCharArray = resolveClass("java.lang.CharArray");
+		wellKnownClassInfos.javaLangIntArray = resolveClass("java.lang.IntArray");
+		wellKnownClassInfos.javaLangFloatArray = resolveClass("java.lang.FloatArray");
+		wellKnownClassInfos.javaLangLongArray = resolveClass("java.lang.LongArray");
+		wellKnownClassInfos.javaLangDoubleArray = resolveClass("java.lang.DoubleArray");
+		wellKnownClassInfos.javaLangObjectArray = resolveClass("java.lang.ObjectArray");
 
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
@@ -172,6 +181,11 @@ public class Compiler implements CodeTranslator.Context {
 		return info;
 	}
 
+	@Override
+	public WellKnownClassInfos getWellKnownClassInfos() {
+		return wellKnownClassInfos;
+	}
+
 	/**
 	 * Compiles all currently resolved classes as well as, recursively, classes that get resolved while compiling.
 	 */
@@ -220,7 +234,7 @@ public class Compiler implements CodeTranslator.Context {
 
 	@Override
 	public int getArrayHeaderSize() {
-		return javaLangArray.fieldAllocator.getWordCount() * 4;
+		return wellKnownClassInfos.javaLangArray.fieldAllocator.getWordCount() * 4;
 	}
 
 	private void emitStaticFields() {
