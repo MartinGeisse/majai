@@ -159,7 +159,11 @@ public abstract class RuntimeObjectSerializer {
 	}
 
 	private String getVtableLabel(ClassInfo classInfo) {
-		return getLabel(((VmObjectMetadata)classInfo.runtimeMetadataContributor).getVtable());
+		return getVtableLabel((VmObjectMetadata)classInfo.runtimeMetadataContributor);
+	}
+
+	private String getVtableLabel(VmObjectMetadata vmObjectMetadata) {
+		return getLabel(vmObjectMetadata.getVtable());
 	}
 
 	public interface Context {

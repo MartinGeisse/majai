@@ -1,9 +1,6 @@
 package name.martingeisse.majai.compiler;
 
-import name.martingeisse.majai.vm.VmClass;
-import name.martingeisse.majai.vm.VmInterface;
-import name.martingeisse.majai.vm.VmObjectMetadata;
-import name.martingeisse.majai.vm.VmObjectMetadataContributor;
+import name.martingeisse.majai.vm.*;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
@@ -32,6 +29,8 @@ public class Compiler implements CodeTranslator.Context {
 	private final Map<String, ClassInfo> classInfos;
 	private boolean classResolutionClosed;
 
+	private final Map<String, VmObjectMetadataContributor> metadataContributors;
+
 	private final Set<String> compiledClasses;
 	private final FieldAllocator staticFieldAllocator;
 	private final RuntimeObjects runtimeObjects;
@@ -48,6 +47,7 @@ public class Compiler implements CodeTranslator.Context {
 		this.out = out;
 		this.classInfos = new HashMap<>();
 		this.classResolutionClosed = false;
+		this.metadataContributors = new HashMap<>();
 		this.compiledClasses = new HashSet<>();
 		this.staticFieldAllocator = new FieldAllocator();
 		this.runtimeObjects = new RuntimeObjects(new RuntimeObjects.Context() {
@@ -75,17 +75,18 @@ public class Compiler implements CodeTranslator.Context {
 		wellKnownClassInfos = new WellKnownClassInfos();
 		wellKnownClassInfos.javaLangObject = resolveClass("java.lang.Object");
 		wellKnownClassInfos.javaLangString = resolveClass("java.lang.String");
-		wellKnownClassInfos.javaLangArray = resolveClass("java.lang.Array");
-		wellKnownClassInfos.javaLangPrimitiveArray = resolveClass("java.lang.PrimitiveArray");
-		wellKnownClassInfos.javaLangBooleanArray = resolveClass("java.lang.BooleanArray");
-		wellKnownClassInfos.javaLangByteArray = resolveClass("java.lang.ByteArray");
-		wellKnownClassInfos.javaLangShortArray = resolveClass("java.lang.ShortArray");
-		wellKnownClassInfos.javaLangCharArray = resolveClass("java.lang.CharArray");
-		wellKnownClassInfos.javaLangIntArray = resolveClass("java.lang.IntArray");
-		wellKnownClassInfos.javaLangFloatArray = resolveClass("java.lang.FloatArray");
-		wellKnownClassInfos.javaLangLongArray = resolveClass("java.lang.LongArray");
-		wellKnownClassInfos.javaLangDoubleArray = resolveClass("java.lang.DoubleArray");
-		wellKnownClassInfos.javaLangObjectArray = resolveClass("java.lang.ObjectArray");
+		//
+		wellKnownClassInfos.javaLangBooleanArray = buildPrimitiveArrayMetadata("[Z");
+		wellKnownClassInfos.javaLangByteArray = buildPrimitiveArrayMetadata("[B");
+		wellKnownClassInfos.javaLangShortArray = buildPrimitiveArrayMetadata("[S");
+		wellKnownClassInfos.javaLangCharArray = buildPrimitiveArrayMetadata("[C");
+		wellKnownClassInfos.javaLangIntArray = buildPrimitiveArrayMetadata("[I");
+		wellKnownClassInfos.javaLangFloatArray = buildPrimitiveArrayMetadata("[F");
+		wellKnownClassInfos.javaLangLongArray = buildPrimitiveArrayMetadata("[J");
+		wellKnownClassInfos.javaLangDoubleArray = buildPrimitiveArrayMetadata("[D");
+		//
+		elementDescriptorToArrayMetadata = new HashMap<>();
+		wellKnownClassInfos.javaLangObjectArray = resolveObjectArrayMetadata("java.lang.Object");
 
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
@@ -98,6 +99,11 @@ public class Compiler implements CodeTranslator.Context {
 		out.println(".data");
 		out.println("dynamicHeap:");
 		out.flush();
+	}
+
+	private VmPrimitiveArrayMetadata buildPrimitiveArrayMetadata(String name) {
+		VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
+		return new VmPrimitiveArrayMetadata(name, objectClass, objectClass.getVtable());
 	}
 
 	/*
@@ -193,6 +199,19 @@ public class Compiler implements CodeTranslator.Context {
 		return info;
 	}
 
+	private VmObjectMetadataContributor resolveObjectMetadataContributor(String name) {
+		VmObjectMetadataContributor metadataContributor = metadataContributors.get(name);
+		if (metadataContributor == null) {
+			if (name.startsWith("[")) {
+
+			}
+
+			VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
+			arrayMetadata = new VmObjectArrayMetadata("[" + elementDescriptor, objectClass, objectClass.getVtable(), );
+		}
+		return metadataContributor;
+	}
+
 	@Override
 	public WellKnownClassInfos getWellKnownClassInfos() {
 		return wellKnownClassInfos;
@@ -246,7 +265,7 @@ public class Compiler implements CodeTranslator.Context {
 
 	@Override
 	public int getArrayHeaderSize() {
-		return wellKnownClassInfos.javaLangArray.fieldAllocator.getWordCount() * 4;
+		return (wellKnownClassInfos.javaLangObject.fieldAllocator.getWordCount() + 1) * 4;
 	}
 
 	private void emitStaticFields() {

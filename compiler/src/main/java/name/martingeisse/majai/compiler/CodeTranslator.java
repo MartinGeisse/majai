@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.vm.VmPrimitiveArrayMetadata;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -548,47 +549,47 @@ class CodeTranslator {
 			case Opcodes.NEWARRAY: {
 				pop("a0");
 				int elementTypeCode = ((IntInsnNode)instruction).operand;
-				ClassInfo classInfo;
+				VmPrimitiveArrayMetadata metadata;
 				int shiftAmount;
 				switch (elementTypeCode) {
 
 					case 4: // boolean
-						classInfo = context.getWellKnownClassInfos().javaLangBooleanArray;
+						metadata = context.getWellKnownClassInfos().javaLangBooleanArray;
 						shiftAmount = 0;
 						break;
 
 					case 8: // byte
-						classInfo = context.getWellKnownClassInfos().javaLangByteArray;
+						metadata = context.getWellKnownClassInfos().javaLangByteArray;
 						shiftAmount = 0;
 						break;
 
 					case 9: // short
-						classInfo = context.getWellKnownClassInfos().javaLangShortArray;
+						metadata = context.getWellKnownClassInfos().javaLangShortArray;
 						shiftAmount = 1;
 						break;
 
 					case 5: // char
-						classInfo = context.getWellKnownClassInfos().javaLangCharArray;
+						metadata = context.getWellKnownClassInfos().javaLangCharArray;
 						shiftAmount = 1;
 						break;
 
 					case 10: // int
-						classInfo = context.getWellKnownClassInfos().javaLangIntArray;
+						metadata = context.getWellKnownClassInfos().javaLangIntArray;
 						shiftAmount = 2;
 						break;
 
 					case 6: // float
-						classInfo = context.getWellKnownClassInfos().javaLangFloatArray;
+						metadata = context.getWellKnownClassInfos().javaLangFloatArray;
 						shiftAmount = 2;
 						break;
 
 					case 11: // long
-						classInfo = context.getWellKnownClassInfos().javaLangLongArray;
+						metadata = context.getWellKnownClassInfos().javaLangLongArray;
 						shiftAmount = 3;
 						break;
 
 					case 7: // double
-						classInfo = context.getWellKnownClassInfos().javaLangDoubleArray;
+						metadata = context.getWellKnownClassInfos().javaLangDoubleArray;
 						shiftAmount = 3;
 						break;
 
@@ -598,13 +599,14 @@ class CodeTranslator {
 				}
 				out.println("\tsll a0, a0, " + shiftAmount);
 				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
-				out.println("\tla a1, " + NameUtil.mangleClassName(classInfo) + "_vtable");
+				out.println("\tla a1, " + NameUtil.mangleClassName(context.getWellKnownClassInfos().javaLangObject) + "_vtable");
 				out.println("\tcall allocateMemory");
 				push("a0");
 				break;
 			}
 
 			case Opcodes.ANEWARRAY: {
+				/*
 				ClassInfo objectArrayClassInfo = context.getWellKnownClassInfos().javaLangObjectArray;
 				ClassInfo elementClassInfo = context.resolveClass(((TypeInsnNode)instruction).desc);
 				pop("a0");
@@ -616,12 +618,14 @@ class CodeTranslator {
 				out.println("\tsw t0, " + resolveField(objectArrayClassInfo, "elementMetadata", true).storageOffset + "(a0)");
 				push("a0");
 				break;
+				 */
+				throw new NotYetImplementedException();
 			}
 
 			case Opcodes.ARRAYLENGTH:
-				writeGetfield(resolveField(context.getWellKnownClassInfos().javaLangArray, "length", true));
-				break;
-
+				//writeGetfield(resolveField(context.getWellKnownClassInfos().javaLangArray, "length", true));
+				//break;
+				throw new NotYetImplementedException();
 
 			case Opcodes.ATHROW:
 			case Opcodes.CHECKCAST:
