@@ -35,7 +35,20 @@ public final class RuntimeObjects {
 		out.println("");
 		out.println(".data");
 
-		RuntimeObjectSerializer serializer = new RuntimeObjectSerializer(context::resolveClass, out) {
+		RuntimeObjectSerializer.Context serializerContext = new RuntimeObjectSerializer.Context() {
+
+			@Override
+			public ClassInfo resolveClass(String name) {
+				return context.resolveClass(name);
+			}
+
+			@Override
+			public WellKnownClassInfos getWellKnownClassInfos() {
+				return context.getWellKnownClassInfos();
+			}
+
+		};
+		RuntimeObjectSerializer serializer = new RuntimeObjectSerializer(serializerContext, out) {
 			@Override
 			protected String getLabel(Object o) {
 				return RuntimeObjects.this.getLabel(o);
@@ -60,6 +73,7 @@ public final class RuntimeObjects {
 
 	public interface Context {
 		ClassInfo resolveClass(String name);
+		WellKnownClassInfos getWellKnownClassInfos();
 	}
 
 }

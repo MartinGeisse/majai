@@ -25,40 +25,77 @@ public abstract class RuntimeObjectSerializer {
 	public void serialize(Object o) {
 		if (o == null) {
 			out.println("\t.word 0");
+		} else if (o instanceof boolean[]) {
+
+			boolean[] array = (boolean[]) o;
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangBooleanArray));
+			serializeArray(array.length, ".byte", i -> array[i] ? "1" : "0");
+
 		} else if (o instanceof byte[]) {
 
 			byte[] array = (byte[]) o;
-			out.println("\t.word 0"); // TODO byte[] vtable
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangByteArray));
 			serializeArray(array.length, ".byte", i -> Integer.toString(array[i] & 0xff));
 
 		} else if (o instanceof short[]) {
 
 			short[] array = (short[]) o;
-			out.println("\t.word 0"); // TODO short[] vtable
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangShortArray));
 			serializeArray(array.length, ".short", i -> Integer.toString(array[i] & 0xffff));
 
 		} else if (o instanceof char[]) {
 
 			char[] array = (char[]) o;
-			out.println("\t.word 0"); // TODO char[] vtable
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangCharArray));
 			serializeArray(array.length, ".short", i -> Integer.toString(array[i] & 0xffff));
+
+		} else if (o instanceof int[]) {
+
+			int[] array = (int[]) o;
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangIntArray));
+			serializeArray(array.length, ".word", i -> Integer.toString(array[i]));
+
+		} else if (o instanceof float[]) {
+
+			float[] array = (float[]) o;
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangFloatArray));
+			serializeArray(array.length, ".float", i -> Float.toString(array[i]));
+
+		} else if (o instanceof long[]) {
+
+			long[] array = (long[]) o;
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangLongArray));
+			serializeArray(array.length, ".quad", i -> Long.toString(array[i]));
+
+		} else if (o instanceof double[]) {
+
+			double[] array = (double[]) o;
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangDoubleArray));
+			serializeArray(array.length, ".double", i -> Double.toString(array[i]));
 
 		} else if (o instanceof Object[]) {
 
 			Object[] array = (Object[]) o;
-			out.println("\t.word 0"); // TODO Object[] vtable
-			// TODO possibly element metadata, but have to add it to java.lang.ReferenceArray first
+			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangObjectArray));
+			out.println("\t.word 0"); // TODO element metadata
 			serializeArray(array.length, ".word", i -> array[i] == null ? "0" : getLabel(array[i]));
-
-		} else if (o instanceof String) {
-
-			GenericRuntimeObject r = new GenericRuntimeObject("java/lang/String");
-			r.put("characters", ((String)o).toCharArray());
-			serializeGenericRuntimeObject(r);
 
 		} else if (o instanceof GenericRuntimeObject) {
 
 			serializeGenericRuntimeObject((GenericRuntimeObject)o);
+
+		} else if (o instanceof String) {
+
+			GenericRuntimeObject r = new GenericRuntimeObject("java/lang/String");
+			r.put("characters", ((String) o).toCharArray());
+			serializeGenericRuntimeObject(r);
+
+		} else if (o.getClass().getName().startsWith("name/martingeisse/majai")) {
+
+			// unlike classes from the boot classpath, our own classes are guaranteed to have the same fields
+			// for both the host and runtime versions
+			// TODO use reflection to construct a GRO
+			throw new NotYetImplementedException();
 
 		} else {
 			throw new RuntimeException("cannot serialize for runtime: " + o);
@@ -121,8 +158,13 @@ public abstract class RuntimeObjectSerializer {
 		}
 	}
 
+	private String getVtableLabel(ClassInfo classInfo) {
+		return getLabel(((VmObjectMetadata)classInfo.runtimeMetadataContributor).getVtable());
+	}
+
 	public interface Context {
 		ClassInfo resolveClass(String name);
+		WellKnownClassInfos getWellKnownClassInfos();
 	}
 
 }

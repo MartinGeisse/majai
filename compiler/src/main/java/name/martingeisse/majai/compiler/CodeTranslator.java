@@ -622,6 +622,7 @@ class CodeTranslator {
 				writeGetfield(resolveField(context.getWellKnownClassInfos().javaLangArray, "length", true));
 				break;
 
+
 			case Opcodes.ATHROW:
 			case Opcodes.CHECKCAST:
 			case Opcodes.INSTANCEOF:

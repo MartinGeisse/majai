@@ -50,7 +50,19 @@ public class Compiler implements CodeTranslator.Context {
 		this.classResolutionClosed = false;
 		this.compiledClasses = new HashSet<>();
 		this.staticFieldAllocator = new FieldAllocator();
-		this.runtimeObjects = new RuntimeObjects(this::resolveClass);
+		this.runtimeObjects = new RuntimeObjects(new RuntimeObjects.Context() {
+
+			@Override
+			public ClassInfo resolveClass(String name) {
+				return Compiler.this.resolveClass(name);
+			}
+
+			@Override
+			public WellKnownClassInfos getWellKnownClassInfos() {
+				return Compiler.this.getWellKnownClassInfos();
+			}
+
+		});
 	}
 
 	public void compile() {
