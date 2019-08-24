@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
+		System.out.println((new String[0]).getClass());
 		File outputFolder = new File("out/majai");
 		outputFolder.mkdirs();
 		File outputFile = new File(outputFolder, "selftest.S");

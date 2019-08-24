@@ -554,42 +554,42 @@ class CodeTranslator {
 				switch (elementTypeCode) {
 
 					case 4: // boolean
-						metadata = context.getWellKnownClassInfos().javaLangBooleanArray;
+						metadata = context.getWellKnownClassInfos().booleanArray;
 						shiftAmount = 0;
 						break;
 
 					case 8: // byte
-						metadata = context.getWellKnownClassInfos().javaLangByteArray;
+						metadata = context.getWellKnownClassInfos().byteArray;
 						shiftAmount = 0;
 						break;
 
 					case 9: // short
-						metadata = context.getWellKnownClassInfos().javaLangShortArray;
+						metadata = context.getWellKnownClassInfos().shortArray;
 						shiftAmount = 1;
 						break;
 
 					case 5: // char
-						metadata = context.getWellKnownClassInfos().javaLangCharArray;
+						metadata = context.getWellKnownClassInfos().charArray;
 						shiftAmount = 1;
 						break;
 
 					case 10: // int
-						metadata = context.getWellKnownClassInfos().javaLangIntArray;
+						metadata = context.getWellKnownClassInfos().intArray;
 						shiftAmount = 2;
 						break;
 
 					case 6: // float
-						metadata = context.getWellKnownClassInfos().javaLangFloatArray;
+						metadata = context.getWellKnownClassInfos().floatArray;
 						shiftAmount = 2;
 						break;
 
 					case 11: // long
-						metadata = context.getWellKnownClassInfos().javaLangLongArray;
+						metadata = context.getWellKnownClassInfos().longArray;
 						shiftAmount = 3;
 						break;
 
 					case 7: // double
-						metadata = context.getWellKnownClassInfos().javaLangDoubleArray;
+						metadata = context.getWellKnownClassInfos().doubleArray;
 						shiftAmount = 3;
 						break;
 

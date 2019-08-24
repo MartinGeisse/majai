@@ -27,9 +27,8 @@ public class Compiler implements CodeTranslator.Context {
 	private final PrintWriter out;
 
 	private final Map<String, ClassInfo> classInfos;
-	private boolean classResolutionClosed;
-
 	private final Map<String, VmObjectMetadataContributor> metadataContributors;
+	private boolean resolutionClosed;
 
 	private final Set<String> compiledClasses;
 	private final FieldAllocator staticFieldAllocator;
@@ -46,7 +45,7 @@ public class Compiler implements CodeTranslator.Context {
 		this.mainClassName = mainClassName;
 		this.out = out;
 		this.classInfos = new HashMap<>();
-		this.classResolutionClosed = false;
+		this.resolutionClosed = false;
 		this.metadataContributors = new HashMap<>();
 		this.compiledClasses = new HashSet<>();
 		this.staticFieldAllocator = new FieldAllocator();
@@ -76,21 +75,20 @@ public class Compiler implements CodeTranslator.Context {
 		wellKnownClassInfos.javaLangObject = resolveClass("java.lang.Object");
 		wellKnownClassInfos.javaLangString = resolveClass("java.lang.String");
 		//
-		wellKnownClassInfos.javaLangBooleanArray = buildPrimitiveArrayMetadata("[Z");
-		wellKnownClassInfos.javaLangByteArray = buildPrimitiveArrayMetadata("[B");
-		wellKnownClassInfos.javaLangShortArray = buildPrimitiveArrayMetadata("[S");
-		wellKnownClassInfos.javaLangCharArray = buildPrimitiveArrayMetadata("[C");
-		wellKnownClassInfos.javaLangIntArray = buildPrimitiveArrayMetadata("[I");
-		wellKnownClassInfos.javaLangFloatArray = buildPrimitiveArrayMetadata("[F");
-		wellKnownClassInfos.javaLangLongArray = buildPrimitiveArrayMetadata("[J");
-		wellKnownClassInfos.javaLangDoubleArray = buildPrimitiveArrayMetadata("[D");
+		wellKnownClassInfos.booleanArray = buildPrimitiveArrayMetadata("[Z");
+		wellKnownClassInfos.byteArray = buildPrimitiveArrayMetadata("[B");
+		wellKnownClassInfos.shortArray = buildPrimitiveArrayMetadata("[S");
+		wellKnownClassInfos.charArray = buildPrimitiveArrayMetadata("[C");
+		wellKnownClassInfos.intArray = buildPrimitiveArrayMetadata("[I");
+		wellKnownClassInfos.floatArray = buildPrimitiveArrayMetadata("[F");
+		wellKnownClassInfos.longArray = buildPrimitiveArrayMetadata("[J");
+		wellKnownClassInfos.doubleArray = buildPrimitiveArrayMetadata("[D");
 		//
-		elementDescriptorToArrayMetadata = new HashMap<>();
-		wellKnownClassInfos.javaLangObjectArray = resolveObjectArrayMetadata("java.lang.Object");
+		wellKnownClassInfos.javaLangObjectArray = (VmObjectArrayMetadata)resolveObjectMetadataContributor("[Ljava.lang.Object;");
 
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
-		classResolutionClosed = true;
+		resolutionClosed = true;
 		emitStaticFields();
 		emitRuntimeObjectsAliasLabels(true);
 		runtimeObjects.emit(out);
@@ -103,7 +101,9 @@ public class Compiler implements CodeTranslator.Context {
 
 	private VmPrimitiveArrayMetadata buildPrimitiveArrayMetadata(String name) {
 		VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
-		return new VmPrimitiveArrayMetadata(name, objectClass, objectClass.getVtable());
+		VmPrimitiveArrayMetadata metadata = new VmPrimitiveArrayMetadata(name, objectClass, objectClass.getVtable());
+		metadataContributors.put(name, metadata);
+		return metadata;
 	}
 
 	/*
@@ -121,36 +121,36 @@ public class Compiler implements CodeTranslator.Context {
 			throw new IllegalArgumentException("cannot use resolveClass() for array classes");
 		}
 		name = NameUtil.normalizeClassName(name);
-		ClassInfo info = classInfos.get(name);
-		if (info == null) {
-			if (classResolutionClosed) {
+		ClassInfo classInfo = classInfos.get(name);
+		if (classInfo == null) {
+			if (resolutionClosed) {
 				throw new IllegalStateException("class resolution has been closed already (trying to resolve " + name + ")");
 			}
 
 			// build a ClassInfo object
-			info = new ClassInfo();
+			classInfo = new ClassInfo();
 			try (InputStream inputStream = classFileLoader.open(name)) {
-				new ClassReader(inputStream).accept(info, ClassReader.SKIP_DEBUG);
+				new ClassReader(inputStream).accept(classInfo, ClassReader.SKIP_DEBUG);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 
 			// resolve superclasses first, then build a field allocator and a vtable allocator
 			ClassInfo superclassInfo;
-			if (info.superName == null) {
+			if (classInfo.superName == null) {
 				superclassInfo = null;
-				info.fieldAllocator = new FieldAllocator();
-				info.vtableAllocator = new VtableAllocator();
+				classInfo.fieldAllocator = new FieldAllocator();
+				classInfo.vtableAllocator = new VtableAllocator();
 			} else {
-				superclassInfo = resolveClass(info.superName);
-				info.fieldAllocator = new FieldAllocator(superclassInfo.fieldAllocator);
-				info.vtableAllocator = new VtableAllocator(superclassInfo.vtableAllocator);
+				superclassInfo = resolveClass(classInfo.superName);
+				classInfo.fieldAllocator = new FieldAllocator(superclassInfo.fieldAllocator);
+				classInfo.vtableAllocator = new VtableAllocator(superclassInfo.vtableAllocator);
 			}
 
 			// allocate fields
-			for (FieldNode field : info.fields) {
+			for (FieldNode field : classInfo.fields) {
 				FieldInfo fieldInfo = (FieldInfo) field;
-				FieldAllocator thisFieldAllocator = (field.access & Opcodes.ACC_STATIC) == 0 ? info.fieldAllocator : staticFieldAllocator;
+				FieldAllocator thisFieldAllocator = (field.access & Opcodes.ACC_STATIC) == 0 ? classInfo.fieldAllocator : staticFieldAllocator;
 				switch (field.desc) {
 
 					case "B":
@@ -173,43 +173,55 @@ public class Compiler implements CodeTranslator.Context {
 
 				}
 			}
-			info.fieldAllocator.seal();
+			classInfo.fieldAllocator.seal();
 
 			// allocate vtable entries
-			for (MethodNode method : info.methods) {
+			for (MethodNode method : classInfo.methods) {
 				MethodInfo methodInfo = (MethodInfo) method;
 				if ((method.access & Opcodes.ACC_STATIC) == 0 && !method.name.equals("<init>")) {
-					methodInfo.vtableIndex = info.vtableAllocator.allocateMethod(methodInfo);
+					methodInfo.vtableIndex = classInfo.vtableAllocator.allocateMethod(methodInfo);
 				}
 			}
-			info.vtableAllocator.seal();
+			classInfo.vtableAllocator.seal();
 
 			// create run-time metadata objects but do not fill them with data yet
-			if ((info.access & Opcodes.ACC_INTERFACE) != 0) {
-				info.runtimeMetadataContributor = new VmInterface(name);
+			if ((classInfo.access & Opcodes.ACC_INTERFACE) != 0) {
+				classInfo.runtimeMetadataContributor = new VmInterface(name);
 			} else {
 				VmClass parentClass = (superclassInfo == null ? null : (VmClass) superclassInfo.runtimeMetadataContributor);
-				info.runtimeMetadataContributor = new VmClass(name, parentClass, info.vtableAllocator.buildVtable());
+				classInfo.runtimeMetadataContributor = new VmClass(name, parentClass, classInfo.vtableAllocator.buildVtable());
 			}
 
-			// publish the ClassInfo for this class
-			classInfos.put(name, info);
-
+			classInfos.put(name, classInfo);
 		}
-		return info;
+		return classInfo;
 	}
 
 	private VmObjectMetadataContributor resolveObjectMetadataContributor(String name) {
-		VmObjectMetadataContributor metadataContributor = metadataContributors.get(name);
-		if (metadataContributor == null) {
-			if (name.startsWith("[")) {
-
+		VmObjectMetadataContributor result = metadataContributors.get(name);
+		if (result == null) {
+			if (resolutionClosed) {
+				throw new IllegalStateException("class resolution has been closed already (trying to resolve " + name + ")");
+			} else if (name.startsWith("[")) {
+				// we can't go here for primitive elements because primitive arrays are pre-built and so are
+				// already available in the metadataContributors.
+				VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
+				String elementSpec = name.substring(1);
+				VmObjectMetadataContributor elementType;
+				if (elementSpec.startsWith("[")) {
+					elementType = resolveObjectMetadataContributor(elementSpec);
+				} else if (elementSpec.startsWith("L") && elementSpec.endsWith(";")) {
+					elementType = resolveObjectMetadataContributor(elementSpec.substring(1, elementSpec.length() - 1));
+				} else {
+					throw new RuntimeException("invalid array class name: " + name);
+				}
+				result = new VmObjectArrayMetadata(name, objectClass, objectClass.getVtable(), elementType);
+			} else {
+				result = resolveClass(name).runtimeMetadataContributor;
 			}
-
-			VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
-			arrayMetadata = new VmObjectArrayMetadata("[" + elementDescriptor, objectClass, objectClass.getVtable(), );
+			metadataContributors.put(name, result);
 		}
-		return metadataContributor;
+		return result;
 	}
 
 	@Override
