@@ -189,7 +189,9 @@ public class Compiler implements CodeTranslator.Context {
 				classInfo.runtimeMetadataContributor = new VmInterface(name);
 			} else {
 				VmClass parentClass = (superclassInfo == null ? null : (VmClass) superclassInfo.runtimeMetadataContributor);
-				classInfo.runtimeMetadataContributor = new VmClass(name, parentClass, classInfo.vtableAllocator.buildVtable());
+				Object[] vtable = classInfo.vtableAllocator.buildVtable(null); // metadata link will be patched below
+				classInfo.runtimeMetadataContributor = new VmClass(name, parentClass, vtable);
+				vtable[LayoutConstants.VTABLE_METADATA_INDEX] = classInfo.runtimeMetadataContributor;
 			}
 
 			classInfos.put(name, classInfo);

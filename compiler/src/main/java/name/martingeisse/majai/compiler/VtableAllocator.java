@@ -1,6 +1,7 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.compiler.runtime.LabelReference;
+import name.martingeisse.majai.vm.VmObjectMetadata;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ArrayList;
@@ -77,12 +78,12 @@ public final class VtableAllocator {
 		}
 	}
 
-	public Object[] buildVtable() {
+	public Object[] buildVtable(VmObjectMetadata parentMetadata) {
 		if (!sealed) {
 			throw new IllegalArgumentException("cannot use an unsealed vtable allocator to build the vtable");
 		}
 		Object[] vtable = new Object[entryMethods.size()];
-		vtable[LayoutConstants.VTABLE_METADATA_INDEX] = null; // TODO
+		vtable[LayoutConstants.VTABLE_METADATA_INDEX] = parentMetadata;
 		for (int i = 1; i < entryMethods.size(); i++) {
 			vtable[i] = new LabelReference(NameUtil.mangleMethodName(entryMethods.get(i)));
 		}
