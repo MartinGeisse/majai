@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.vm.VmObjectMetadata;
 import name.martingeisse.majai.vm.VmPrimitiveArrayMetadata;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -549,47 +550,47 @@ class CodeTranslator {
 			case Opcodes.NEWARRAY: {
 				pop("a0");
 				int elementTypeCode = ((IntInsnNode)instruction).operand;
-				VmPrimitiveArrayMetadata metadata;
+				VmObjectMetadata metadata;
 				int shiftAmount;
 				switch (elementTypeCode) {
 
 					case 4: // boolean
-						metadata = context.getWellKnownClassInfos().booleanArray;
+						metadata = context.resolveObjectMetadata("[Z");
 						shiftAmount = 0;
 						break;
 
 					case 8: // byte
-						metadata = context.getWellKnownClassInfos().byteArray;
+						metadata = context.resolveObjectMetadata("[B");
 						shiftAmount = 0;
 						break;
 
 					case 9: // short
-						metadata = context.getWellKnownClassInfos().shortArray;
+						metadata = context.resolveObjectMetadata("[S");
 						shiftAmount = 1;
 						break;
 
 					case 5: // char
-						metadata = context.getWellKnownClassInfos().charArray;
+						metadata = context.resolveObjectMetadata("[C");
 						shiftAmount = 1;
 						break;
 
 					case 10: // int
-						metadata = context.getWellKnownClassInfos().intArray;
+						metadata = context.resolveObjectMetadata("[I");
 						shiftAmount = 2;
 						break;
 
 					case 6: // float
-						metadata = context.getWellKnownClassInfos().floatArray;
+						metadata = context.resolveObjectMetadata("[F");
 						shiftAmount = 2;
 						break;
 
 					case 11: // long
-						metadata = context.getWellKnownClassInfos().longArray;
+						metadata = context.resolveObjectMetadata("[J");
 						shiftAmount = 3;
 						break;
 
 					case 7: // double
-						metadata = context.getWellKnownClassInfos().doubleArray;
+						metadata = context.resolveObjectMetadata("[D");
 						shiftAmount = 3;
 						break;
 
@@ -599,7 +600,7 @@ class CodeTranslator {
 				}
 				out.println("\tsll a0, a0, " + shiftAmount);
 				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
-				out.println("\tla a1, " + NameUtil.mangleClassName(context.getWellKnownClassInfos().javaLangObject) + "_vtable");
+				out.println("\tla a1, " + context.getRuntimeObjectLabel(metadata.getVtable()));
 				out.println("\tcall allocateMemory");
 				push("a0");
 				break;
@@ -910,6 +911,7 @@ class CodeTranslator {
 
 	public interface Context {
 		ClassInfo resolveClass(String name);
+		VmObjectMetadata resolveObjectMetadata(String name);
 		WellKnownClassInfos getWellKnownClassInfos();
 		int getArrayHeaderSize();
 		String getRuntimeObjectLabel(Object o);
