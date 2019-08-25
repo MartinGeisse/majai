@@ -99,7 +99,7 @@ public class Compiler implements CodeTranslator.Context {
 	}
 
 	private VmPrimitiveArrayMetadata buildPrimitiveArrayMetadata(String name) {
-		VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/object");
+		VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/Object");
 		VmPrimitiveArrayMetadata metadata = new VmPrimitiveArrayMetadata(name, javaLangObject, javaLangObject.getVtable());
 		metadataContributors.put(name, metadata);
 		return metadata;
@@ -215,7 +215,7 @@ public class Compiler implements CodeTranslator.Context {
 			} else if (name.startsWith("[")) {
 				// we can't go here for primitive elements because primitive arrays are pre-built and so are
 				// already available in the metadataContributors.
-				VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/object");
+				VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/Object");
 				String elementSpec = name.substring(1);
 				VmObjectMetadataContributor elementType;
 				if (elementSpec.startsWith("[")) {

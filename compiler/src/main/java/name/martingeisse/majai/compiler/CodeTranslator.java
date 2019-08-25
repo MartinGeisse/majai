@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.vm.VmObjectArrayMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadata;
 import name.martingeisse.majai.vm.VmPrimitiveArrayMetadata;
 import org.objectweb.asm.Label;
@@ -607,20 +608,16 @@ class CodeTranslator {
 			}
 
 			case Opcodes.ANEWARRAY: {
-				/*
-				ClassInfo objectArrayClassInfo = context.getWellKnownClassInfos().javaLangObjectArray;
-				ClassInfo elementClassInfo = context.resolveClass(((TypeInsnNode)instruction).desc);
+				String elementDesc = ((TypeInsnNode)instruction).desc;
+				String arrayDesc = "[" + elementDesc;
+				VmObjectArrayMetadata metadata = (VmObjectArrayMetadata)context.resolveObjectMetadata(arrayDesc);
 				pop("a0");
 				out.println("\tsll a0, a0, 2");
 				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
-				out.println("\tla a1, " + NameUtil.mangleClassName(objectArrayClassInfo) + "_vtable");
+				out.println("\tla a1, " + context.getRuntimeObjectLabel(metadata.getVtable()));
 				out.println("\tcall allocateMemory");
-				out.println("\tla t0, " + context.getRuntimeObjectLabel(elementClassInfo.runtimeMetadataContributor));
-				out.println("\tsw t0, " + resolveField(objectArrayClassInfo, "elementMetadata", true).storageOffset + "(a0)");
 				push("a0");
 				break;
-				 */
-				throw new NotYetImplementedException();
 			}
 
 			case Opcodes.ARRAYLENGTH:

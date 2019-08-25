@@ -80,7 +80,7 @@ public abstract class RuntimeObjectSerializer {
 				throw new NotYetImplementedException("serializing object arrays with different run-time type than Object[] not yet implemented");
 			}
 			Object[] array = (Object[]) o;
-			out.println("\t.word " + getVtableLabel("[Ljava.lang.object;"));
+			out.println("\t.word " + getVtableLabel("[Ljava.lang.Object;"));
 			serializeArray(array.length, ".word", i -> array[i] == null ? "0" : getLabel(array[i]));
 
 		} else if (o instanceof GenericRuntimeObject) {
