@@ -1,6 +1,7 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.compiler.runtime.LabelReference;
+import name.martingeisse.majai.vm.VmObjectMetadata;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -43,8 +44,8 @@ public final class RuntimeObjects {
 			}
 
 			@Override
-			public WellKnownClassInfos getWellKnownClassInfos() {
-				return context.getWellKnownClassInfos();
+			public VmObjectMetadata resolveObjectMetadata(String name) {
+				return context.resolveObjectMetadata(name);
 			}
 
 		};
@@ -73,7 +74,7 @@ public final class RuntimeObjects {
 
 	public interface Context {
 		ClassInfo resolveClass(String name);
-		WellKnownClassInfos getWellKnownClassInfos();
+		VmObjectMetadata resolveObjectMetadata(String name);
 	}
 
 }

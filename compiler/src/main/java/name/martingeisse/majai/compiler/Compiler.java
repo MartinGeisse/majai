@@ -57,8 +57,8 @@ public class Compiler implements CodeTranslator.Context {
 			}
 
 			@Override
-			public WellKnownClassInfos getWellKnownClassInfos() {
-				return Compiler.this.getWellKnownClassInfos();
+			public VmObjectMetadata resolveObjectMetadata(String name) {
+				return Compiler.this.resolveObjectMetadata(name);
 			}
 
 		});
@@ -75,16 +75,16 @@ public class Compiler implements CodeTranslator.Context {
 		wellKnownClassInfos.javaLangObject = resolveClass("java.lang.Object");
 		wellKnownClassInfos.javaLangString = resolveClass("java.lang.String");
 		//
-		wellKnownClassInfos.booleanArray = buildPrimitiveArrayMetadata("[Z");
-		wellKnownClassInfos.byteArray = buildPrimitiveArrayMetadata("[B");
-		wellKnownClassInfos.shortArray = buildPrimitiveArrayMetadata("[S");
-		wellKnownClassInfos.charArray = buildPrimitiveArrayMetadata("[C");
-		wellKnownClassInfos.intArray = buildPrimitiveArrayMetadata("[I");
-		wellKnownClassInfos.floatArray = buildPrimitiveArrayMetadata("[F");
-		wellKnownClassInfos.longArray = buildPrimitiveArrayMetadata("[J");
-		wellKnownClassInfos.doubleArray = buildPrimitiveArrayMetadata("[D");
+		buildPrimitiveArrayMetadata("[Z");
+		buildPrimitiveArrayMetadata("[B");
+		buildPrimitiveArrayMetadata("[S");
+		buildPrimitiveArrayMetadata("[C");
+		buildPrimitiveArrayMetadata("[I");
+		buildPrimitiveArrayMetadata("[F");
+		buildPrimitiveArrayMetadata("[J");
+		buildPrimitiveArrayMetadata("[D");
 		//
-		wellKnownClassInfos.javaLangObjectArray = (VmObjectArrayMetadata)resolveObjectMetadataContributor("[Ljava.lang.Object;");
+		resolveObjectMetadataContributor("[Ljava.lang.Object;");
 
 		compileClass(mainClassName);
 		compileAllResolvedClasses();
@@ -100,8 +100,8 @@ public class Compiler implements CodeTranslator.Context {
 	}
 
 	private VmPrimitiveArrayMetadata buildPrimitiveArrayMetadata(String name) {
-		VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
-		VmPrimitiveArrayMetadata metadata = new VmPrimitiveArrayMetadata(name, objectClass, objectClass.getVtable());
+		VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/object");
+		VmPrimitiveArrayMetadata metadata = new VmPrimitiveArrayMetadata(name, javaLangObject, javaLangObject.getVtable());
 		metadataContributors.put(name, metadata);
 		return metadata;
 	}
@@ -199,7 +199,7 @@ public class Compiler implements CodeTranslator.Context {
 		return classInfo;
 	}
 
-	private VmObjectMetadata resolveObjectMetadata(String name) {
+	public VmObjectMetadata resolveObjectMetadata(String name) {
 		VmObjectMetadataContributor contributor = resolveObjectMetadataContributor(name);
 		if (contributor instanceof VmObjectMetadata) {
 			return (VmObjectMetadata)contributor;
@@ -216,7 +216,7 @@ public class Compiler implements CodeTranslator.Context {
 			} else if (name.startsWith("[")) {
 				// we can't go here for primitive elements because primitive arrays are pre-built and so are
 				// already available in the metadataContributors.
-				VmClass objectClass = (VmClass)wellKnownClassInfos.javaLangObject.runtimeMetadataContributor;
+				VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/object");
 				String elementSpec = name.substring(1);
 				VmObjectMetadataContributor elementType;
 				if (elementSpec.startsWith("[")) {
@@ -226,7 +226,7 @@ public class Compiler implements CodeTranslator.Context {
 				} else {
 					throw new RuntimeException("invalid array class name: " + name);
 				}
-				result = new VmObjectArrayMetadata(name, objectClass, objectClass.getVtable(), elementType);
+				result = new VmObjectArrayMetadata(name, javaLangObject, javaLangObject.getVtable(), elementType);
 			} else {
 				result = resolveClass(name).runtimeMetadataContributor;
 			}

@@ -12,15 +12,4 @@ public final class WellKnownClassInfos {
     public ClassInfo javaLangObject;
     public ClassInfo javaLangString;
 
-    public VmPrimitiveArrayMetadata booleanArray;
-    public VmPrimitiveArrayMetadata byteArray;
-    public VmPrimitiveArrayMetadata shortArray;
-    public VmPrimitiveArrayMetadata charArray;
-    public VmPrimitiveArrayMetadata intArray;
-    public VmPrimitiveArrayMetadata floatArray;
-    public VmPrimitiveArrayMetadata longArray;
-    public VmPrimitiveArrayMetadata doubleArray;
-
-    public VmObjectArrayMetadata javaLangObjectArray;
-
 }
