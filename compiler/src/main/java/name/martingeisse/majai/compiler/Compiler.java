@@ -199,6 +199,15 @@ public class Compiler implements CodeTranslator.Context {
 		return classInfo;
 	}
 
+	private VmObjectMetadata resolveObjectMetadata(String name) {
+		VmObjectMetadataContributor contributor = resolveObjectMetadataContributor(name);
+		if (contributor instanceof VmObjectMetadata) {
+			return (VmObjectMetadata)contributor;
+		} else {
+			throw new RuntimeException("metadata contributor is not a full metadata object: " + name);
+		}
+	}
+
 	private VmObjectMetadataContributor resolveObjectMetadataContributor(String name) {
 		VmObjectMetadataContributor result = metadataContributors.get(name);
 		if (result == null) {

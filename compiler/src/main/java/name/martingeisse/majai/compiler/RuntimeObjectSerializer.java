@@ -2,6 +2,7 @@ package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.compiler.runtime.GenericRuntimeObject;
 import name.martingeisse.majai.vm.VmObjectMetadata;
+import name.martingeisse.majai.vm.VmObjectMetadataContributor;
 import org.objectweb.asm.tree.FieldNode;
 
 import java.io.PrintWriter;
@@ -28,49 +29,49 @@ public abstract class RuntimeObjectSerializer {
 		} else if (o instanceof boolean[]) {
 
 			boolean[] array = (boolean[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().booleanArray));
+			out.println("\t.word " + getVtableLabel("[Z"));
 			serializeArray(array.length, ".byte", i -> array[i] ? "1" : "0");
 
 		} else if (o instanceof byte[]) {
 
 			byte[] array = (byte[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().byteArray));
+			out.println("\t.word " + getVtableLabel("[B"));
 			serializeArray(array.length, ".byte", i -> Integer.toString(array[i] & 0xff));
 
 		} else if (o instanceof short[]) {
 
 			short[] array = (short[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().shortArray));
+			out.println("\t.word " + getVtableLabel("[S"));
 			serializeArray(array.length, ".short", i -> Integer.toString(array[i] & 0xffff));
 
 		} else if (o instanceof char[]) {
 
 			char[] array = (char[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().charArray));
+			out.println("\t.word " + getVtableLabel("[C"));
 			serializeArray(array.length, ".short", i -> Integer.toString(array[i] & 0xffff));
 
 		} else if (o instanceof int[]) {
 
 			int[] array = (int[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().intArray));
+			out.println("\t.word " + getVtableLabel("[I"));
 			serializeArray(array.length, ".word", i -> Integer.toString(array[i]));
 
 		} else if (o instanceof float[]) {
 
 			float[] array = (float[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().floatArray));
+			out.println("\t.word " + getVtableLabel("[F"));
 			serializeArray(array.length, ".float", i -> Float.toString(array[i]));
 
 		} else if (o instanceof long[]) {
 
 			long[] array = (long[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().longArray));
+			out.println("\t.word " + getVtableLabel("[J"));
 			serializeArray(array.length, ".quad", i -> Long.toString(array[i]));
 
 		} else if (o instanceof double[]) {
 
 			double[] array = (double[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().doubleArray));
+			out.println("\t.word " + getVtableLabel("[D"));
 			serializeArray(array.length, ".double", i -> Double.toString(array[i]));
 
 		} else if (o instanceof Object[]) {
@@ -79,7 +80,7 @@ public abstract class RuntimeObjectSerializer {
 				throw new NotYetImplementedException("serializing object arrays with different run-time type than Object[] not yet implemented");
 			}
 			Object[] array = (Object[]) o;
-			out.println("\t.word " + getVtableLabel(context.getWellKnownClassInfos().javaLangObjectArray));
+			out.println("\t.word " + getVtableLabel("[Ljava.lang.object;"));
 			serializeArray(array.length, ".word", i -> array[i] == null ? "0" : getLabel(array[i]));
 
 		} else if (o instanceof GenericRuntimeObject) {
@@ -160,17 +161,13 @@ public abstract class RuntimeObjectSerializer {
 		}
 	}
 
-	private String getVtableLabel(ClassInfo classInfo) {
-		return getVtableLabel((VmObjectMetadata)classInfo.runtimeMetadataContributor);
-	}
-
-	private String getVtableLabel(VmObjectMetadata vmObjectMetadata) {
-		return getLabel(vmObjectMetadata.getVtable());
+	private String getVtableLabel(String metadataName) {
+		return getLabel(context.resolveObjectMetadata(metadataName).getVtable());
 	}
 
 	public interface Context {
 		ClassInfo resolveClass(String name);
-		WellKnownClassInfos getWellKnownClassInfos();
+		VmObjectMetadata resolveObjectMetadata(String name);
 	}
 
 }
