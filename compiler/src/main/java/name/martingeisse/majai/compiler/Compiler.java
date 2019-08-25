@@ -34,7 +34,7 @@ public class Compiler implements CodeTranslator.Context {
 	private final FieldAllocator staticFieldAllocator;
 	private final RuntimeObjects runtimeObjects;
 
-	private WellKnownClassInfos wellKnownClassInfos;
+	private int arrayHeaderSize = -1;
 
 	public Compiler(ClassFileLoader classFileLoader, String mainClassName, Writer out) {
 		this(classFileLoader, mainClassName, new PrintWriter(out));
@@ -71,9 +71,8 @@ public class Compiler implements CodeTranslator.Context {
 			throw new RuntimeException(e);
 		}
 
-		wellKnownClassInfos = new WellKnownClassInfos();
-		wellKnownClassInfos.javaLangObject = resolveClass("java.lang.Object");
-		wellKnownClassInfos.javaLangString = resolveClass("java.lang.String");
+		arrayHeaderSize = (resolveClass("java.lang.Object").fieldAllocator.getWordCount() + 1) * 4;
+		resolveClass("java.lang.String");
 		//
 		buildPrimitiveArrayMetadata("[Z");
 		buildPrimitiveArrayMetadata("[B");
@@ -235,11 +234,6 @@ public class Compiler implements CodeTranslator.Context {
 		return result;
 	}
 
-	@Override
-	public WellKnownClassInfos getWellKnownClassInfos() {
-		return wellKnownClassInfos;
-	}
-
 	/**
 	 * Compiles all currently resolved classes as well as, recursively, classes that get resolved while compiling.
 	 */
@@ -288,7 +282,7 @@ public class Compiler implements CodeTranslator.Context {
 
 	@Override
 	public int getArrayHeaderSize() {
-		return (wellKnownClassInfos.javaLangObject.fieldAllocator.getWordCount() + 1) * 4;
+		return arrayHeaderSize;
 	}
 
 	private void emitStaticFields() {

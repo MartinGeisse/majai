@@ -511,7 +511,7 @@ class CodeTranslator {
 			}
 
 			case Opcodes.GETFIELD: {
-				writeGetfield(resolveField((FieldInsnNode)instruction));
+				writeGetfield((FieldInfo)resolveField((FieldInsnNode)instruction));
 				break;
 			}
 
@@ -624,9 +624,8 @@ class CodeTranslator {
 			}
 
 			case Opcodes.ARRAYLENGTH:
-				//writeGetfield(resolveField(context.getWellKnownClassInfos().javaLangArray, "length", true));
-				//break;
-				throw new NotYetImplementedException();
+				writeGetfield(context.getArrayHeaderSize() - 4, 1, "lw");
+				break;
 
 			case Opcodes.ATHROW:
 			case Opcodes.CHECKCAST:
@@ -785,12 +784,15 @@ class CodeTranslator {
 		}
 	}
 
-	private void writeGetfield(FieldNode field) {
-		int offset = ((FieldInfo)field).storageOffset;
-		int words = getFieldWords(field.desc);
+	private void writeGetfield(FieldInfo field) {
+		// TODO use correct load instruction
+		writeGetfield(field.storageOffset, getFieldWords(field.desc), "lw");
+	}
+
+	private void writeGetfield(int offset, int words, String loadInstruction) {
 		if (words == 1) {
 			out.println("\tlw t1, 0(sp)");
-			out.println("\tlw t0, " + offset + "(t1)");
+			out.println("\t" + loadInstruction + " t0, " + offset + "(t1)");
 			out.println("\tsw t0, 0(sp)");
 		} else {
 			out.println("\tlw t1, 0(sp)");
@@ -912,7 +914,6 @@ class CodeTranslator {
 	public interface Context {
 		ClassInfo resolveClass(String name);
 		VmObjectMetadata resolveObjectMetadata(String name);
-		WellKnownClassInfos getWellKnownClassInfos();
 		int getArrayHeaderSize();
 		String getRuntimeObjectLabel(Object o);
 	}
