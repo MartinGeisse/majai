@@ -6,6 +6,8 @@ import name.martingeisse.majai.vm.VmObjectMetadataContributor;
 import org.objectweb.asm.tree.FieldNode;
 
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -93,12 +95,26 @@ public abstract class RuntimeObjectSerializer {
 			r.put("characters", ((String) o).toCharArray());
 			serializeGenericRuntimeObject(r);
 
-		} else if (o.getClass().getName().startsWith("name/martingeisse/majai")) {
+		} else if (o.getClass().getName().startsWith("name.martingeisse.majai")) {
 
 			// unlike classes from the boot classpath, our own classes are guaranteed to have the same fields
 			// for both the host and runtime versions
-			// TODO use reflection to construct a GRO
-			throw new NotYetImplementedException();
+			try {
+				GenericRuntimeObject gro = new GenericRuntimeObject(o.getClass().getName());
+				Class<?> currentClass = o.getClass();
+				while (currentClass != null) {
+					for (Field field : currentClass.getDeclaredFields()) {
+						if (!Modifier.isStatic(field.getModifiers())) {
+							field.setAccessible(true);
+							gro.put(field.getName(), field.get(o));
+						}
+					}
+					currentClass = currentClass.getSuperclass();
+				}
+				serializeGenericRuntimeObject(gro);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 
 		} else {
 			throw new RuntimeException("cannot serialize for runtime: " + o);
@@ -136,6 +152,7 @@ public abstract class RuntimeObjectSerializer {
 			}
 			if (field.desc.startsWith("[") || field.desc.startsWith("L")) {
 				out.println("\t.word " + getLabel(o.getFieldValues().get(field.name)));
+				position += 4;
 			} else switch (field.desc) {
 
 				default:

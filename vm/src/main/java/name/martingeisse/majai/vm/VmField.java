@@ -10,10 +10,12 @@ public final class VmField {
 
     void bind(VmObjectMetadata objectMetadata) {
         if (objectMetadata == null) {
-            throw new IllegalArgumentException("cannot bind to null");
+            // TODO cannot compile this yet
+            // throw new IllegalArgumentException("cannot bind to null");
         }
         if (this.objectMetadata != null) {
-            throw new IllegalStateException("already bound");
+            // TODO cannot compile this yet
+            // throw new IllegalStateException("already bound");
         }
         this.objectMetadata = objectMetadata;
     }

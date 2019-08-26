@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import com.google.common.reflect.ClassPath;
 import name.martingeisse.majai.vm.*;
 import org.apache.commons.io.IOUtils;
 import org.objectweb.asm.ClassReader;
@@ -71,8 +72,9 @@ public class Compiler implements CodeTranslator.Context {
 			throw new RuntimeException(e);
 		}
 
-		arrayHeaderSize = (resolveClass("java.lang.Object").fieldAllocator.getWordCount() + 1) * 4;
-		resolveClass("java.lang.String");
+		arrayHeaderSize = (resolveClass(Object.class).fieldAllocator.getWordCount() + 1) * 4;
+		resolveClass(String.class);
+		resolveAllClassesInPackage(VmClass.class);
 		//
 		buildPrimitiveArrayMetadata("[Z");
 		buildPrimitiveArrayMetadata("[B");
@@ -99,10 +101,28 @@ public class Compiler implements CodeTranslator.Context {
 	}
 
 	private VmPrimitiveArrayMetadata buildPrimitiveArrayMetadata(String name) {
-		VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/Object");
+		VmClass javaLangObject = (VmClass) resolveObjectMetadata("java/lang/Object");
 		VmPrimitiveArrayMetadata metadata = new VmPrimitiveArrayMetadata(name, javaLangObject, javaLangObject.getVtable());
 		metadataContributors.put(name, metadata);
 		return metadata;
+	}
+
+	public void resolveAllClassesInPackage(Class<?> anchor) {
+		try {
+			ClassPath classPath = ClassPath.from(anchor.getClassLoader());
+			String prefix = anchor.getPackage().getName() + ".";
+			for (ClassPath.ClassInfo info : classPath.getAllClasses()) {
+				if (info.getName().startsWith(prefix)) {
+					resolveClass(info.getName());
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public ClassInfo resolveClass(Class<?> c) {
+		return resolveClass(c.getName());
 	}
 
 	/*
@@ -194,6 +214,7 @@ public class Compiler implements CodeTranslator.Context {
 			}
 
 			classInfos.put(name, classInfo);
+			resolveObjectMetadataContributor(name); // to fill that map too while resolution is "open"
 		}
 		return classInfo;
 	}
@@ -201,7 +222,7 @@ public class Compiler implements CodeTranslator.Context {
 	public VmObjectMetadata resolveObjectMetadata(String name) {
 		VmObjectMetadataContributor contributor = resolveObjectMetadataContributor(name);
 		if (contributor instanceof VmObjectMetadata) {
-			return (VmObjectMetadata)contributor;
+			return (VmObjectMetadata) contributor;
 		} else {
 			throw new RuntimeException("metadata contributor is not a full metadata object: " + name);
 		}
@@ -215,7 +236,7 @@ public class Compiler implements CodeTranslator.Context {
 			} else if (name.startsWith("[")) {
 				// we can't go here for primitive elements because primitive arrays are pre-built and so are
 				// already available in the metadataContributors.
-				VmClass javaLangObject = (VmClass)resolveObjectMetadata("java/lang/Object");
+				VmClass javaLangObject = (VmClass) resolveObjectMetadata("java/lang/Object");
 				String elementSpec = name.substring(1);
 				VmObjectMetadataContributor elementType;
 				if (elementSpec.startsWith("[")) {

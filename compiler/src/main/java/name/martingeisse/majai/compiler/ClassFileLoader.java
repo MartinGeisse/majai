@@ -15,6 +15,8 @@ public class ClassFileLoader {
 		"jboot/out/production/classes/",
 		"compiler/build/classes/java/main/",
 		"compiler/out/production/classes/",
+		"vm/build/classes/java/main/",
+		"vm/out/production/classes/",
 	};
 
 	public InputStream open(String className) throws IOException {
