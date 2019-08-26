@@ -32,12 +32,6 @@ class CodeTranslator {
 	}
 
 	void translate() {
-		if (methodInfo.name.equals("<init>")) {
-			return;
-		}
-		if (methodInfo.name.equals("<clinit>")) {
-			throw new UnsupportedOperationException("static initializer not yet supported");
-		}
 		if ((methodInfo.access & Opcodes.ACC_NATIVE) != 0) {
 			return;
 		}
