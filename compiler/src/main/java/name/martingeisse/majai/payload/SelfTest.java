@@ -64,10 +64,6 @@ public class SelfTest {
 			}
 		}
 
-
-		// TODO: test returning a String
-		// out(returnWorld());
-
 		// test constructors, including from sublasses
 		{
 			ConstructorSub constructorSub = new ConstructorSub(3, 5);
@@ -76,6 +72,21 @@ public class SelfTest {
 
 		}
 
+		// test array creation, storing values, loading values, length
+		{
+			int[] a = new int[3];
+			for (int i = 0; i < a.length; i++) {
+				a[i] = 2 * i;
+			}
+			for (int i = 0; i < a.length; i++) {
+				out(a[i]);
+			}
+		}
+
+
+
+		// TODO: test returning a String
+		// out(returnWorld());
 	}
 
 	public static int return99() {
