@@ -752,12 +752,14 @@ class CodeTranslator {
 		return (descriptor.equals("J") || descriptor.equals("D")) ? 2 : 1;
 	}
 
-	private void writeGetstatic(FieldNode field) {
-		int offset = ((FieldInfo)field).storageOffset;
-		int words = getFieldWords(field.desc);
+	private void writeGetstatic(FieldInfo field) {
+		writeGetstatic(field.storageOffset, getFieldWords(field.desc), "lw"); // TODO instruction
+	}
+
+	private void writeGetstatic(int offset, int words, String loadInstruction) {
 		if (words == 1) {
 			out.println("\taddi sp, sp, -4");
-			out.println("\tlw t0, staticFields + " + offset);
+			out.println("\t" + loadInstruction + " t0, staticFields + " + offset);
 			out.println("\tsw t0, 0(sp)");
 		} else {
 			out.println("\taddi sp, sp, -8");
@@ -768,12 +770,14 @@ class CodeTranslator {
 		}
 	}
 
-	private void writePutstatic(FieldNode field) {
-		int offset = ((FieldInfo)field).storageOffset;
-		int words = getFieldWords(field.desc);
+	private void writePutstatic(FieldInfo field) {
+		writePutstatic(field.storageOffset, getFieldWords(field.desc), "sw"); // TODO instruction
+	}
+
+	private void writePutstatic(int offset, int words, String storeInstruction) {
 		if (words == 1) {
 			out.println("\tlw t0, 0(sp)");
-			out.println("\tsw t0, staticFields + " + offset);
+			out.println("\t" + storeInstruction + " t0, staticFields + " + offset);
 			out.println("\taddi sp, sp, 4");
 		} else {
 			out.println("\tlw t0, 0(sp)");
@@ -785,8 +789,7 @@ class CodeTranslator {
 	}
 
 	private void writeGetfield(FieldInfo field) {
-		// TODO use correct load instruction
-		writeGetfield(field.storageOffset, getFieldWords(field.desc), "lw");
+		writeGetfield(field.storageOffset, getFieldWords(field.desc), "lw"); // TODO instruction
 	}
 
 	private void writeGetfield(int offset, int words, String loadInstruction) {
@@ -804,12 +807,14 @@ class CodeTranslator {
 		}
 	}
 
-	private void writePutfield(FieldNode field) {
-		int offset = ((FieldInfo)field).storageOffset;
-		int words = getFieldWords(field.desc);
+	private void writePutfield(FieldInfo field) {
+		writePutfield(field.storageOffset, getFieldWords(field.desc), "sw"); // TODO instruction
+	}
+
+	private void writePutfield(int offset, int words, String storeInstruction) {
 		if (words == 1) {
 			out.println("\tlw t1, 4(sp)");
-			out.println("\tlw t0, 0(sp)");
+			out.println("\t" + storeInstruction + " t0, 0(sp)");
 			out.println("\tsw t0, " + offset + "(t1)");
 			out.println("\taddi sp, sp, 8");
 		} else {
