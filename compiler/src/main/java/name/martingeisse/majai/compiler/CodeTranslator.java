@@ -1,5 +1,6 @@
 package name.martingeisse.majai.compiler;
 
+import name.martingeisse.majai.compiler.descriptor.ParsedMethodDescriptor;
 import name.martingeisse.majai.vm.VmObjectArrayMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadata;
 import org.objectweb.asm.Label;
