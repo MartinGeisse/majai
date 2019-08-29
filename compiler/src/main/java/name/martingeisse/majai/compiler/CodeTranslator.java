@@ -2,7 +2,6 @@ package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.vm.VmObjectArrayMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadata;
-import name.martingeisse.majai.vm.VmPrimitiveArrayMetadata;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
@@ -139,13 +138,13 @@ class CodeTranslator {
 			case Opcodes.FLOAD:
 			case Opcodes.ALOAD:
 				//noinspection ConstantConditions
-				load32(((VarInsnNode)instruction).var);
+				load32(((VarInsnNode) instruction).var);
 				break;
 
 			case Opcodes.LLOAD:
 			case Opcodes.DLOAD:
 				//noinspection ConstantConditions
-				load64(((VarInsnNode)instruction).var);
+				load64(((VarInsnNode) instruction).var);
 				break;
 
 			case Opcodes.IALOAD:
@@ -175,13 +174,13 @@ class CodeTranslator {
 			case Opcodes.FSTORE:
 			case Opcodes.ASTORE:
 				//noinspection ConstantConditions
-				store32(((VarInsnNode)instruction).var);
+				store32(((VarInsnNode) instruction).var);
 				break;
 
 			case Opcodes.LSTORE:
 			case Opcodes.DSTORE:
 				//noinspection ConstantConditions
-				store32(((VarInsnNode)instruction).var);
+				store32(((VarInsnNode) instruction).var);
 				break;
 
 			case Opcodes.IASTORE:
@@ -368,7 +367,7 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.IINC: {
-				IincInsnNode inc = (IincInsnNode)instruction;
+				IincInsnNode inc = (IincInsnNode) instruction;
 				out.println("\tlw t0, " + (inc.var * 4) + "(s0)");
 				out.println("\taddi t0, t0, " + inc.incr);
 				out.println("\tsw t0, " + (inc.var * 4) + "(s0)");
@@ -412,63 +411,63 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.IFEQ:
-				branch((JumpInsnNode)instruction, "beq", true);
+				branch((JumpInsnNode) instruction, "beq", true);
 				break;
 
 			case Opcodes.IFNE:
-				branch((JumpInsnNode)instruction, "bne", true);
+				branch((JumpInsnNode) instruction, "bne", true);
 				break;
 
 			case Opcodes.IFLT:
-				branch((JumpInsnNode)instruction, "blt", true);
+				branch((JumpInsnNode) instruction, "blt", true);
 				break;
 
 			case Opcodes.IFGE:
-				branch((JumpInsnNode)instruction, "bge", true);
+				branch((JumpInsnNode) instruction, "bge", true);
 				break;
 
 			case Opcodes.IFGT:
-				branch((JumpInsnNode)instruction, "bgt", true);
+				branch((JumpInsnNode) instruction, "bgt", true);
 				break;
 
 			case Opcodes.IFLE:
-				branch((JumpInsnNode)instruction, "ble", true);
+				branch((JumpInsnNode) instruction, "ble", true);
 				break;
 
 			case Opcodes.IF_ICMPEQ:
-				branch((JumpInsnNode)instruction, "beq", false);
+				branch((JumpInsnNode) instruction, "beq", false);
 				break;
 
 			case Opcodes.IF_ICMPNE:
-				branch((JumpInsnNode)instruction, "bne", false);
+				branch((JumpInsnNode) instruction, "bne", false);
 				break;
 
 			case Opcodes.IF_ICMPLT:
-				branch((JumpInsnNode)instruction, "blt", false);
+				branch((JumpInsnNode) instruction, "blt", false);
 				break;
 
 			case Opcodes.IF_ICMPGE:
-				branch((JumpInsnNode)instruction, "bge", false);
+				branch((JumpInsnNode) instruction, "bge", false);
 				break;
 
 			case Opcodes.IF_ICMPGT:
-				branch((JumpInsnNode)instruction, "bgt", false);
+				branch((JumpInsnNode) instruction, "bgt", false);
 				break;
 
 			case Opcodes.IF_ICMPLE:
-				branch((JumpInsnNode)instruction, "ble", false);
+				branch((JumpInsnNode) instruction, "ble", false);
 				break;
 
 			case Opcodes.IF_ACMPEQ:
-				branch((JumpInsnNode)instruction, "beq", false);
+				branch((JumpInsnNode) instruction, "beq", false);
 				break;
 
 			case Opcodes.IF_ACMPNE:
-				branch((JumpInsnNode)instruction, "bne", false);
+				branch((JumpInsnNode) instruction, "bne", false);
 				break;
 
 			case Opcodes.GOTO:
-				out.println("\tj " + getLabelName((JumpInsnNode)instruction));
+				out.println("\tj " + getLabelName((JumpInsnNode) instruction));
 				break;
 
 			case Opcodes.JSR:
@@ -496,35 +495,35 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.GETSTATIC: {
-				writeGetstatic(resolveField((FieldInsnNode)instruction));
+				writeGetstatic((FieldInfo) resolveField((FieldInsnNode) instruction));
 				break;
 			}
 
 			case Opcodes.PUTSTATIC: {
-				writePutstatic(resolveField((FieldInsnNode)instruction));
+				writePutstatic((FieldInfo) resolveField((FieldInsnNode) instruction));
 				break;
 			}
 
 			case Opcodes.GETFIELD: {
-				writeGetfield((FieldInfo)resolveField((FieldInsnNode)instruction));
+				writeGetfield((FieldInfo) resolveField((FieldInsnNode) instruction));
 				break;
 			}
 
 			case Opcodes.PUTFIELD: {
-				writePutfield(resolveField((FieldInsnNode)instruction));
+				writePutfield((FieldInfo) resolveField((FieldInsnNode) instruction));
 				break;
 			}
 
 			case Opcodes.INVOKEVIRTUAL:
-				invokevirtual((MethodInsnNode)instruction);
+				invokevirtual((MethodInsnNode) instruction);
 				break;
 
 			case Opcodes.INVOKESPECIAL:
-				invokenonvirtual((MethodInsnNode)instruction, false);
+				invokenonvirtual((MethodInsnNode) instruction, false);
 				break;
 
 			case Opcodes.INVOKESTATIC:
-				invokenonvirtual((MethodInsnNode)instruction, true);
+				invokenonvirtual((MethodInsnNode) instruction, true);
 				break;
 
 			case Opcodes.INVOKEINTERFACE:
@@ -532,7 +531,7 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.NEW: {
-				TypeInsnNode typeInstruction = (TypeInsnNode)instruction;
+				TypeInsnNode typeInstruction = (TypeInsnNode) instruction;
 				String className = typeInstruction.desc;
 				ClassInfo classInfo = context.resolveClass(className);
 				out.println("\tli a0, " + classInfo.fieldAllocator.getWordCount());
@@ -544,7 +543,7 @@ class CodeTranslator {
 
 			case Opcodes.NEWARRAY: {
 				pop("a0");
-				int elementTypeCode = ((IntInsnNode)instruction).operand;
+				int elementTypeCode = ((IntInsnNode) instruction).operand;
 				VmObjectMetadata metadata;
 				int shiftAmount;
 				switch (elementTypeCode) {
@@ -602,9 +601,9 @@ class CodeTranslator {
 			}
 
 			case Opcodes.ANEWARRAY: {
-				String elementDesc = ((TypeInsnNode)instruction).desc;
+				String elementDesc = ((TypeInsnNode) instruction).desc;
 				String arrayDesc = "[" + elementDesc;
-				VmObjectArrayMetadata metadata = (VmObjectArrayMetadata)context.resolveObjectMetadata(arrayDesc);
+				VmObjectArrayMetadata metadata = (VmObjectArrayMetadata) context.resolveObjectMetadata(arrayDesc);
 				pop("a0");
 				out.println("\tsll a0, a0, 2");
 				out.println("\tadd a0, a0, " + context.getArrayHeaderSize());
@@ -627,11 +626,11 @@ class CodeTranslator {
 				throw new NotYetImplementedException();
 
 			case Opcodes.IFNULL:
-				branch((JumpInsnNode)instruction, "beq", true);
+				branch((JumpInsnNode) instruction, "beq", true);
 				break;
 
 			case Opcodes.IFNONNULL:
-				branch((JumpInsnNode)instruction, "bne", true);
+				branch((JumpInsnNode) instruction, "bne", true);
 				break;
 
 			default:
@@ -639,6 +638,8 @@ class CodeTranslator {
 
 		}
 	}
+
+//region stack manipulation and computation
 
 	private void pushInt(int value) {
 		out.println("\tli t0, " + value);
@@ -692,6 +693,10 @@ class CodeTranslator {
 		out.println("\tsw t0, 0(sp)");
 	}
 
+//endregion
+
+//region control transfer
+
 	private void branch(JumpInsnNode bytecodeInstruction, String machineInstruction, boolean implicitZero) {
 		if (!implicitZero) {
 			pop("t1");
@@ -720,6 +725,10 @@ class CodeTranslator {
 		return getLabelName(jump.label);
 	}
 
+//endregion
+
+//region field access
+
 	private FieldNode resolveField(FieldInsnNode instruction) {
 		ClassNode classNode = context.resolveClass(instruction.owner);
 		return resolveField(classNode, instruction.name, true);
@@ -729,7 +738,7 @@ class CodeTranslator {
 		for (FieldNode field : classNode.fields) {
 			if (allowPrivate || (field.access & Opcodes.ACC_PRIVATE) == 0) {
 				if (field.name.equals(name)) {
-					return (FieldInfo)field;
+					return (FieldInfo) field;
 				}
 			}
 		}
@@ -813,6 +822,10 @@ class CodeTranslator {
 		}
 	}
 
+//endregion
+
+//region array element access
+
 	private void writeArrayLoad(int indexShiftAmount, boolean doubleword, String loadInstruction) {
 		out.println("\tlw t0, 4(sp)");
 		out.println("\tlw t1, 0(sp)");
@@ -852,6 +865,10 @@ class CodeTranslator {
 			out.println("\t" + storeInstruction + " t2, " + context.getArrayHeaderSize() + "(t0)");
 		}
 	}
+
+//endregion
+
+//region method invocation
 
 	private void invokenonvirtual(MethodInsnNode call, boolean staticMethod) {
 		ParsedMethodDescriptor parsedMethodDescriptor = new ParsedMethodDescriptor(call.desc);
@@ -902,10 +919,15 @@ class CodeTranslator {
 
 	}
 
+//endregion
+
 	public interface Context {
 		ClassInfo resolveClass(String name);
+
 		VmObjectMetadata resolveObjectMetadata(String name);
+
 		int getArrayHeaderSize();
+
 		String getRuntimeObjectLabel(Object o);
 	}
 
