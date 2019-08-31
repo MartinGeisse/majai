@@ -44,7 +44,7 @@ class CodeTranslator {
 		out.println("\tmv s0, sp");
 		{
 			int words = (methodInfo.access & Opcodes.ACC_STATIC) == 0 ? 1 : 0;
-			words += new ParsedMethodDescriptor(methodInfo.desc).getParameterWords();
+			words += methodInfo.parsedDescriptor.getParameterWords();
 			for (int i = 0; i < words; i++) {
 				out.println("\tsw a" + i + ", " + (i * 4) + "(s0)");
 			}
@@ -754,7 +754,7 @@ class CodeTranslator {
 	}
 
 	private void writeGetstatic(FieldInfo field) {
-		writeGetstatic(field.storageOffset, getFieldWords(field.desc), "lw"); // TODO instruction
+		writeGetstatic(field.storageOffset, getFieldWords(field.desc), field.parsedDescriptor.getLoadInstruction());
 	}
 
 	private void writeGetstatic(int offset, int words, String loadInstruction) {
@@ -772,7 +772,7 @@ class CodeTranslator {
 	}
 
 	private void writePutstatic(FieldInfo field) {
-		writePutstatic(field.storageOffset, getFieldWords(field.desc), "sw"); // TODO instruction
+		writePutstatic(field.storageOffset, getFieldWords(field.desc), field.parsedDescriptor.getStoreInstruction());
 	}
 
 	private void writePutstatic(int offset, int words, String storeInstruction) {
@@ -790,7 +790,7 @@ class CodeTranslator {
 	}
 
 	private void writeGetfield(FieldInfo field) {
-		writeGetfield(field.storageOffset, getFieldWords(field.desc), "lw"); // TODO instruction
+		writeGetfield(field.storageOffset, getFieldWords(field.desc), field.parsedDescriptor.getLoadInstruction());
 	}
 
 	private void writeGetfield(int offset, int words, String loadInstruction) {
@@ -809,7 +809,7 @@ class CodeTranslator {
 	}
 
 	private void writePutfield(FieldInfo field) {
-		writePutfield(field.storageOffset, getFieldWords(field.desc), "sw"); // TODO instruction
+		writePutfield(field.storageOffset, getFieldWords(field.desc), field.parsedDescriptor.getStoreInstruction());
 	}
 
 	private void writePutfield(int offset, int words, String storeInstruction) {
