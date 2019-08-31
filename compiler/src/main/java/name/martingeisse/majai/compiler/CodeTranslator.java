@@ -1,6 +1,10 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.compiler.descriptor.ParsedMethodDescriptor;
+import name.martingeisse.majai.compiler.util.DoubleNotYetImplementedException;
+import name.martingeisse.majai.compiler.util.FloatNotYetImplementedException;
+import name.martingeisse.majai.compiler.util.LongNotYetImplementedException;
+import name.martingeisse.majai.compiler.util.NotYetImplementedException;
 import name.martingeisse.majai.vm.VmObjectArrayMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadata;
 import org.objectweb.asm.Label;
@@ -112,9 +116,11 @@ class CodeTranslator {
 			case Opcodes.FCONST_0:
 			case Opcodes.FCONST_1:
 			case Opcodes.FCONST_2:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DCONST_0:
 			case Opcodes.DCONST_1:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.BIPUSH:
 			case Opcodes.SIPUSH:
@@ -127,19 +133,19 @@ class CodeTranslator {
 				if (ldc.cst instanceof Integer) {
 					pushInt((Integer) ldc.cst);
 				} else if (ldc.cst instanceof Float) {
-					throw new NotYetImplementedException();
+					throw new FloatNotYetImplementedException();
 				} else if (ldc.cst instanceof Long) {
-					throw new NotYetImplementedException();
+					throw new LongNotYetImplementedException();
 				} else if (ldc.cst instanceof Double) {
-					throw new NotYetImplementedException();
+					throw new DoubleNotYetImplementedException();
 				} else if (ldc.cst instanceof String) {
 					String label = context.getRuntimeObjectLabel(ldc.cst);
 					out.println("\tla t0, " + label);
 					push("t0");
 				} else if (ldc.cst instanceof Type) {
-					throw new NotYetImplementedException();
+					throw new NotYetImplementedException("ldc(type) not yet implemented");
 				} else {
-					throw new NotYetImplementedException("ldc with invalid constant type: " + ldc.cst.getClass());
+					throw new RuntimeException("ldc with invalid constant type: " + ldc.cst.getClass());
 				}
 				break;
 			}
@@ -285,96 +291,120 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.LADD:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FADD:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DADD:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.ISUB:
 				wordOp("sub");
 				break;
 
 			case Opcodes.LSUB:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FSUB:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DSUB:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.IMUL:
 				wordOp("mul");
 				break;
 
 			case Opcodes.LMUL:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FMUL:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DMUL:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.IDIV:
 				wordOp("div");
 				break;
 
 			case Opcodes.LDIV:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FDIV:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DDIV:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.IREM:
 				wordOp("rem");
 				break;
 
 			case Opcodes.LREM:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FREM:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DREM:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.INEG:
 				wordOp("neg");
 				break;
 
 			case Opcodes.LNEG:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FNEG:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DNEG:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.ISHL:
 				wordOp("sll");
 				break;
 
 			case Opcodes.LSHL:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.ISHR:
 				wordOp("sra");
 				break;
 
 			case Opcodes.LSHR:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.IUSHR:
 				wordOp("srl");
 				break;
 
 			case Opcodes.LUSHR:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.IAND:
 				wordOp("and");
 				break;
 
 			case Opcodes.LAND:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.IOR:
 				wordOp("or");
 				break;
 
 			case Opcodes.LOR:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.IXOR:
 				wordOp("xor");
 				break;
 
 			case Opcodes.LXOR:
-				throw new NotYetImplementedException();
+				throw new LongNotYetImplementedException();
 
 			case Opcodes.IINC: {
 				IincInsnNode inc = (IincInsnNode) instruction;
@@ -385,18 +415,40 @@ class CodeTranslator {
 			}
 
 			case Opcodes.I2L:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.I2F:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.I2D:
+				throw new DoubleNotYetImplementedException();
+
 			case Opcodes.L2I:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.L2F:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.L2D:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.F2I:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.F2L:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.F2D:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.D2I:
+				throw new DoubleNotYetImplementedException();
+
 			case Opcodes.D2L:
+				throw new DoubleNotYetImplementedException();
+
 			case Opcodes.D2F:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.I2B:
 				out.println("\tlb t0, 0(sp)");
@@ -414,11 +466,15 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.LCMP:
+				throw new LongNotYetImplementedException();
+
 			case Opcodes.FCMPL:
 			case Opcodes.FCMPG:
+				throw new FloatNotYetImplementedException();
+
 			case Opcodes.DCMPL:
 			case Opcodes.DCMPG:
-				throw new NotYetImplementedException();
+				throw new DoubleNotYetImplementedException();
 
 			case Opcodes.IFEQ:
 				branch((JumpInsnNode) instruction, "beq", true);
@@ -484,7 +540,7 @@ class CodeTranslator {
 			case Opcodes.RET:
 			case Opcodes.TABLESWITCH:
 			case Opcodes.LOOKUPSWITCH:
-				throw new NotYetImplementedException();
+				throw new NotYetImplementedException("jsr/ret/tableswitch/lookupswitch not yet implemented");
 
 			case Opcodes.IRETURN:
 			case Opcodes.FRETURN:
@@ -537,8 +593,10 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.INVOKEINTERFACE:
+				throw new NotYetImplementedException("invokeinterface not yet implemented");
+
 			case Opcodes.INVOKEDYNAMIC:
-				throw new NotYetImplementedException();
+				throw new NotYetImplementedException("invokedynamic not yet implemented");
 
 			case Opcodes.NEW: {
 				TypeInsnNode typeInstruction = (TypeInsnNode) instruction;
@@ -633,7 +691,7 @@ class CodeTranslator {
 			case Opcodes.MONITORENTER:
 			case Opcodes.MONITOREXIT:
 			case Opcodes.MULTIANEWARRAY:
-				throw new NotYetImplementedException();
+				throw new NotYetImplementedException("athrow/checkcast/instanceof/monitorenter/monitorexit/multianewarray not yet implemented");
 
 			case Opcodes.IFNULL:
 				branch((JumpInsnNode) instruction, "beq", true);

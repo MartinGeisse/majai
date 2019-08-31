@@ -1,4 +1,4 @@
-package name.martingeisse.majai.compiler;
+package name.martingeisse.majai.compiler.util;
 
 /**
  *

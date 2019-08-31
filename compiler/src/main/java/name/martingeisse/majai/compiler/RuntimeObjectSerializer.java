@@ -1,8 +1,8 @@
 package name.martingeisse.majai.compiler;
 
 import name.martingeisse.majai.compiler.runtime.GenericRuntimeObject;
+import name.martingeisse.majai.compiler.util.NotYetImplementedException;
 import name.martingeisse.majai.vm.VmObjectMetadata;
-import name.martingeisse.majai.vm.VmObjectMetadataContributor;
 import org.objectweb.asm.tree.FieldNode;
 
 import java.io.PrintWriter;
