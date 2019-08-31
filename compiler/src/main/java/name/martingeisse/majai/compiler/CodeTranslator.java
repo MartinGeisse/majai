@@ -5,6 +5,7 @@ import name.martingeisse.majai.vm.VmObjectArrayMetadata;
 import name.martingeisse.majai.vm.VmObjectMetadata;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.io.PrintWriter;
@@ -125,12 +126,20 @@ class CodeTranslator {
 				LdcInsnNode ldc = (LdcInsnNode) instruction;
 				if (ldc.cst instanceof Integer) {
 					pushInt((Integer) ldc.cst);
+				} else if (ldc.cst instanceof Float) {
+					throw new NotYetImplementedException();
+				} else if (ldc.cst instanceof Long) {
+					throw new NotYetImplementedException();
+				} else if (ldc.cst instanceof Double) {
+					throw new NotYetImplementedException();
 				} else if (ldc.cst instanceof String) {
 					String label = context.getRuntimeObjectLabel(ldc.cst);
 					out.println("\tla t0, " + label);
 					push("t0");
+				} else if (ldc.cst instanceof Type) {
+					throw new NotYetImplementedException();
 				} else {
-					throw new NotYetImplementedException("ldc with anything other than Integer not supported yet; found: " + ldc.cst.getClass());
+					throw new NotYetImplementedException("ldc with invalid constant type: " + ldc.cst.getClass());
 				}
 				break;
 			}
