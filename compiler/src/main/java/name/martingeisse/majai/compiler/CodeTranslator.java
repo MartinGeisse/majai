@@ -538,6 +538,8 @@ class CodeTranslator {
 
 			case Opcodes.JSR:
 			case Opcodes.RET:
+				throw new RuntimeException("jsr/ret is depprecated and not supported");
+
 			case Opcodes.TABLESWITCH:
 			case Opcodes.LOOKUPSWITCH:
 				throw new NotYetImplementedException("jsr/ret/tableswitch/lookupswitch not yet implemented");
