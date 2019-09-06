@@ -31,4 +31,26 @@ public abstract class VmObjectMetadata extends VmObjectMetadataContributor {
         return vtable;
     }
 
+    public static boolean objectIsInstanceOf(Object object, VmObjectMetadata metadata) {
+        return false;
+    }
+
+    public static Object castReference(Object object, VmObjectMetadata metadata) {
+        return null;
+    }
+
+
+
+
+    public static boolean isEqualOrSubclassOf(VmObjectMetadata x, VmObjectMetadata y) {
+        if (x == y) {
+            return true;
+        }
+        VmClass parent = x.getParentClass();
+        if (parent == null) {
+            return false;
+        }
+        return isEqualOrSubclassOf(parent, y);
+    }
+
 }

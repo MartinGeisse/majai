@@ -688,12 +688,23 @@ class CodeTranslator {
 				break;
 
 			case Opcodes.ATHROW:
-			case Opcodes.CHECKCAST:
+				throw new NotYetImplementedException("athrow not yet implemented");
+
+			case Opcodes.CHECKCAST: {
+				TypeInsnNode typeNode = (TypeInsnNode)instruction;
+				VmObjectMetadata metadata = context.resolveObjectMetadata(typeNode.desc);
+				pop("a0");
+				out.println("\tla a1, " + context.getRuntimeObjectLabel(metadata));
+				out.println("\tcall name_martingeisse_majai_vm_VmObjectMetadata_castReference_Ljava_lang_Object_Lname_martingeisse_majai_vm_VmObjectMetadata__Ljava_lang_Object_");
+				TODO
+				break;
+			}
+
 			case Opcodes.INSTANCEOF:
 			case Opcodes.MONITORENTER:
 			case Opcodes.MONITOREXIT:
 			case Opcodes.MULTIANEWARRAY:
-				throw new NotYetImplementedException("athrow/checkcast/instanceof/monitorenter/monitorexit/multianewarray not yet implemented");
+				throw new NotYetImplementedException("checkcast/instanceof/monitorenter/monitorexit/multianewarray not yet implemented");
 
 			case Opcodes.IFNULL:
 				branch((JumpInsnNode) instruction, "beq", true);

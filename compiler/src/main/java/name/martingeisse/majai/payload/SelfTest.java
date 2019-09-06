@@ -83,6 +83,12 @@ public class SelfTest {
 			}
 		}
 
+		// test checkcast
+		{
+			Object o = "foo";
+			out(((String)o).length());
+		}
+
 
 
 		// TODO: test returning a String
